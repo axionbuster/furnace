@@ -5143,8 +5143,6 @@ bool FurnaceGUI::loop() {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
         e->load(introTemp,intro_fur_len);
-        // the intro tune is authored in 12-EDO
-        e->remapPatternsTo31EDO();
       }
     }
 #endif
