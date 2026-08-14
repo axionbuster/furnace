@@ -801,7 +801,7 @@ void FurnaceGUI::drawFindReplace() {
           if (queryReplaceNoteMode==GUI_QUERY_REPLACE_SET) {
             NoteSelector(&queryReplaceNote, true);
           } else if (queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD || queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-            if (ImGui::InputInt("##NRValue",&queryReplaceNote,1,12)) {
+            if (ImGui::InputInt("##NRValue",&queryReplaceNote,1,DIV_EDO31_STEPS)) {
               if (queryReplaceNote<-180) queryReplaceNote=-180;
               if (queryReplaceNote>180) queryReplaceNote=180;
             }

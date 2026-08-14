@@ -879,6 +879,7 @@ class DivEngine {
     // convert between old and new note/octave format
     short splitNoteToNote(short note, short octave);
     void noteToSplitNote(short note, short& outNote, short& outOctave);
+    void remapPatternsTo31EDO();
 
     // is FM system
     bool isFMSystem(DivSystem sys);

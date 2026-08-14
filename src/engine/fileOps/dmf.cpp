@@ -1218,6 +1218,49 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
   return true;
 }
 
+// 31-EDO fork: .dmf stores 12-EDO (note,octave) pairs with note in 1..12, so a
+// fork note slot has to be folded back to the nearest 12-EDO pitch on export.
+// this stays lossy (up to ~19 cents of quantization), but it keeps the written
+// fields inside the range the format allows.
+static void dmfNoteToSplitNote(short note, short& outNote, short& outOctave) {
+  switch (note) {
+    case DIV_NOTE_OFF:
+      outNote=100;
+      outOctave=0;
+      break;
+    case DIV_NOTE_REL:
+      outNote=101;
+      outOctave=0;
+      break;
+    case DIV_MACRO_REL:
+      outNote=102;
+      outOctave=0;
+      break;
+    case DIV_NOTE_NULL_PAT:
+      // "BUG" note!
+      outNote=0;
+      outOctave=1;
+      break;
+    case -1:
+      outNote=0;
+      outOctave=0;
+      break;
+    default: {
+      // pitch-equivalent 12-EDO slot (stock calibration puts A-4 at slot 117)
+      int slot12=117+(int)round((double)(note-DIV_EDO31_A4)*12.0/(double)DIV_EDO31_STEPS);
+      if (slot12<0) slot12=0;
+      if (slot12>179) slot12=179;
+      outNote=slot12%12;
+      outOctave=(unsigned char)(slot12-60)/12;
+      if (outNote==0) {
+        outNote=12;
+        outOctave--;
+      }
+      break;
+    }
+  }
+}
+
 SafeWriter* DivEngine::saveDMF(unsigned char version) {
   // fail if version is not supported
   if (version>26) version=26;
@@ -1823,7 +1866,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
             addWarning("note/macro release will be converted to note off!");
           }
         } else {
-          noteToSplitNote(pat->newData[k][DIV_PAT_NOTE],note,octave);
+          dmfNoteToSplitNote(pat->newData[k][DIV_PAT_NOTE],note,octave);
           w->writeS(note); // note
           w->writeS(octave); // octave
         }

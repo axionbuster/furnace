@@ -2357,6 +2357,28 @@ void DivEngine::noteToSplitNote(short note, short& outNote, short& outOctave) {
   }
 }
 
+void DivEngine::remapPatternsTo31EDO() {
+  // for songs authored as 12-EDO (e.g. the intro tune): embed every pattern
+  // note on the nearest 31-EDO step, pitch-anchored at middle C (stock 108)
+  BUSY_BEGIN;
+  for (size_t j=0; j<song.subsong.size(); j++) {
+    for (int i=0; i<DIV_MAX_CHANS; i++) {
+      for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+        if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+        for (int l=0; l<DIV_MAX_ROWS; l++) {
+          short note=song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_NOTE];
+          if (note<0 || note>179) continue;
+          int seek=DIV_EDO31_MIDDLE_C+(int)round((double)(note-108)*(double)DIV_EDO31_STEPS/12.0);
+          if (seek<0) seek=0;
+          if (seek>179) seek=179;
+          song.subsong[j]->pat[i].data[k]->newData[l][DIV_PAT_NOTE]=seek;
+        }
+      }
+    }
+  }
+  BUSY_END;
+}
+
 void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   BUSY_BEGIN;
   previewSampleNoLock(sample,note,pStart,pEnd);

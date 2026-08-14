@@ -79,12 +79,30 @@ static void terpstraRound(float q, float r, int& outQ, int& outR) {
 }
 
 void FurnaceGUI::drawTerpstra() {
+  // the body below is what normally issues note-offs. if it doesn't run (window
+  // closed or collapsed while a hex is held) the held notes would drone forever,
+  // so sweep them here instead.
+  auto releaseHeld=[this]() {
+    for (int i=0; i<180; i++) {
+      if (!terpstraKeyPressed[i]) continue;
+      terpstraKeyPressed[i]=false;
+      int note=i;
+      e->synchronized([this,note]() {
+        e->autoNoteOff(-1,note);
+        failedNoteOn=false;
+      });
+    }
+  };
+
   if (nextWindow==GUI_WINDOW_TERPSTRA) {
     terpstraOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
-  if (!terpstraOpen) return;
+  if (!terpstraOpen) {
+    releaseHeld();
+    return;
+  }
   if (ImGui::Begin("Terpstra Keyboard",&terpstraOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse,_("Terpstra Keyboard"))) {
     bool oldTerpstraKeyPressed[180];
     memcpy(oldTerpstraKeyPressed,terpstraKeyPressed,180*sizeof(bool));
@@ -281,6 +299,8 @@ void FurnaceGUI::drawTerpstra() {
         }
       }
     }
+  } else {
+    releaseHeld();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_TERPSTRA;
   ImGui::End();

@@ -595,7 +595,8 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
   ImGui::SetNextItemWidth(width);
   int note=(*value)%31;
   int oct=GUI_EDIT_OCTAVE_MIN;
-  if (*value<180) oct=(*value/31)+2;
+  // edo31Octave() applies the Cb rule, so the digit here matches the pattern display
+  if (*value<180) oct=edo31Octave(*value);
   ImGui::BeginGroup();
   ImGui::PushID(value);
   if (ImGui::BeginCombo("##NoteSelectorNote",tempID)) {
@@ -638,7 +639,13 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
     }
   }
   if (calcNote) {
-    *value=CLAMP((oct-2)*31+note,0,179);
+    int newValue=(oct-2)*31+note;
+    // Cb takes the digit of the C above it, so its slot is one chunk lower
+    if (note==29) newValue-=31;
+    // keep the selected step, moving it to the nearest octave that fits
+    while (newValue>179) newValue-=31;
+    while (newValue<0) newValue+=31;
+    *value=CLAMP(newValue,0,179);
     ret=true;
   }
   ImGui::PopID();
@@ -5136,6 +5143,8 @@ bool FurnaceGUI::loop() {
         unsigned char* introTemp=new unsigned char[intro_fur_len];
         memcpy(introTemp,intro_fur,intro_fur_len);
         e->load(introTemp,intro_fur_len);
+        // the intro tune is authored in 12-EDO
+        e->remapPatternsTo31EDO();
       }
     }
 #endif
@@ -9753,7 +9762,7 @@ FurnaceGUI::FurnaceGUI():
   queryReplaceNoteMode(0),
   queryReplaceInsMode(0),
   queryReplaceVolMode(0),
-  queryReplaceNote(108),
+  queryReplaceNote(DIV_EDO31_MIDDLE_C),
   queryReplaceIns(0),
   queryReplaceVol(0),
   queryReplaceNoteDo(false),
