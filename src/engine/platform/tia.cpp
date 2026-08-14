@@ -117,7 +117,7 @@ void DivPlatformTIA::acquireDirect(blip_buffer_t** bb, size_t len) {
 
 unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pitch) {
   int bp=base+pitch;
-  double mult=0.25*(parent->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
+  double mult=0.25*(parent->song.tuning*0.0625)*pow(2.0,double(bp-((DIV_EDO31_A4-60)<<8))/(256.0*(double)DIV_EDO31_STEPS)+5.0);
   if (mult<0.5) mult=0.5;
   int ret=0;
   switch (shape) {
@@ -151,7 +151,7 @@ unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pi
 }
 
 int DivPlatformTIA::dealWithFreqNew(int shape, int bp) {
-  double mult=(parent->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
+  double mult=(parent->song.tuning*0.0625)*pow(2.0,double(bp-((DIV_EDO31_A4-60)<<8))/(256.0*(double)DIV_EDO31_STEPS)+5.0);
   double clock=chipClock/28.5;
   switch (shape) {
     case 1: // buzzy

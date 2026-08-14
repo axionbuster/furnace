@@ -28,8 +28,8 @@
 #define KLATTSCH_MIX_CLIP_THRESHOLD 0.85f
 
 static float furnaceNoteToHz(float note, float tuning) {
-  // dispatch notes are offset by 60 from the note shown in the GUI.
-  return tuning*std::pow(2.0f,(note-117.0f)/12.0f);
+  // dispatch notes are 31-EDO slots; slot 85 is A-4 at the song's tuning.
+  return tuning*std::pow(2.0f,(note-(float)DIV_EDO31_A4)/(float)DIV_EDO31_STEPS);
 }
 
 static float softClipMix(float x) {
@@ -208,10 +208,10 @@ void DivPlatformKlattsch::convertBaseFreqMode(Channel& ch, bool raw) {
     return;
   }
 
-  // Normal mode uses 1/128-semitone base units. Preserve the current audible
+  // Normal mode uses 1/128-step base units. Preserve the current audible
   // pitch while changing domains, accounting for the offsets effectiveF0 adds.
   if (currentHz>0.0f && parent->song.tuning>0.0f) {
-    const float note=117.0f+12.0f*std::log2(currentHz/parent->song.tuning);
+    const float note=(float)DIV_EDO31_A4+(float)DIV_EDO31_STEPS*std::log2(currentHz/parent->song.tuning);
     ch.baseFreq=(int)std::lround(note*128.0f)-(ch.arpOff<<7)-ch.pitch-ch.pitch2;
   } else {
     ch.baseFreq=0;

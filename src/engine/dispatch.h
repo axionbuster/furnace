@@ -28,6 +28,7 @@
 #include "blip_buf.h"
 #include "config.h"
 #include "defines.h"
+#include "edo31.h"
 #include "macroInt.h"
 
 // custom clock limits
@@ -369,15 +370,16 @@ static_assert(DIV_CMD_KLATTSCH_PHONEME==0xe3,"Klattsch FCS command IDs changed")
  */
 struct DivPitchTable {
   // the following two arrays should not be accessed directly. use the get() function instead.
-  // 13 notes, spanning an octave and extra C.
+  // 32 notes, spanning an octave and one extra step.
   // the octave usually covers the chip's maximum period (lowest octave)/frequency (highest octave).
-  int pitch[12+1];
+  int pitch[DIV_EDO31_STEPS+1];
   // the difference hetween one entry and the next.
-  int pitchDiff[12+1];
+  int pitchDiff[DIV_EDO31_STEPS+1];
   // the chip's maximum period/frequency value.
   unsigned int maxFreq;
-  // the octave that the pitch array is in.
-  unsigned char shift;
+  // the octave that the pitch array is in. may be negative - the 31-EDO note
+  // space is only 6 octaves wide, so this range is the stock one biased by -7.
+  signed char shift;
   // period: whether this table is "periodic" or "frequency".
   // linearity: this should reflect the song's pitch linearity setting.
   bool period, linearity;

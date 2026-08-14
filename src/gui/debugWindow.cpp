@@ -802,14 +802,14 @@ void FurnaceGUI::drawDebug() {
             ImGui::TableNextColumn();
             ImGui::Text("delta (to next)");
 
-            for (int i=0; i<=12; i++) {
+            for (int i=0; i<=31; i++) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              ImGui::Text("%s",baseNoteNames[i%12]);
+              ImGui::Text("%s",baseNoteNames31[i%31]);
               ImGui::TableNextColumn();
               ImGui::Text("%x (%d)",pt->pitch[i],pt->pitch[i]);
               ImGui::TableNextColumn();
-              if (i<12) {
+              if (i<31) {
                 if (pt->pitchDiff[i]<0) {
                   ImGui::Text("%x (%d)",-pt->pitchDiff[i],pt->pitchDiff[i]);
                 } else {
@@ -864,8 +864,8 @@ void FurnaceGUI::drawDebug() {
         ImGui::Text("Delta");
 
         int lastFinal=0;
-        for (int i=0; i<12; i++) {
-          int note=(12*ptcOctave)+i;
+        for (int i=0; i<31; i++) {
+          int note=(31*ptcOctave)+i;
           int pitch=0;
 
           int base=e->calcBaseFreq(ptcClock,ptcDivider,note,ptcMode==1);

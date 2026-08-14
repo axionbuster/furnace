@@ -407,7 +407,7 @@ void FurnaceGUI::drawWaveEdit() {
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
           // if the user is playing this wave while changing the length, retrigger it.
-          if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote+60);
+          if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
           MARK_MODIFIED;
         }
         ImGui::SameLine();

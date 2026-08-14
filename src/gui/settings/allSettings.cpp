@@ -1349,8 +1349,8 @@ void FurnaceGUI::initSettings() {
               snprintf(bindID,1024,_("Any"));
             } else {
               const char* nName="???";
-              if ((bind.data1+60)>0 && (bind.data1+60)<180) {
-                nName=noteNames[bind.data1+60];
+              if ((bind.data1+2)>0 && (bind.data1+2)<180) {
+                nName=noteNames[bind.data1+2];
               }
               snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,nName);
             }
@@ -1362,8 +1362,8 @@ void FurnaceGUI::initSettings() {
               }
               for (int j=0; j<128; j++) {
                 const char* nName="???";
-                if ((j+60)>0 && (j+60)<180) {
-                  nName=noteNames[j+60];
+                if ((j+2)>0 && (j+2)<180) {
+                  nName=noteNames[j+2];
                 }
                 snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,nName,j);
                 if (ImGui::Selectable(bindID,bind.data1==j)) {
@@ -2146,22 +2146,22 @@ void FurnaceGUI::initSettings() {
     },{
       SUBCATEGORY(_N("Pattern view labels"),{
         SettingEntry::InputText(
-          _N("Note off (3-char)"),
+          _N("Note off (4-char)"),
           "noteOffLabel",&settings.noteOffLabel,
           "OFF"
         ),
         SettingEntry::InputText(
-          _N("Note release (3-char)"),
+          _N("Note release (4-char)"),
           "noteRelLabel",&settings.noteRelLabel,
           "==="
         ),
         SettingEntry::InputText(
-          _N("Macro release (3-char)"),
+          _N("Macro release (4-char)"),
           "macroRelLabel",&settings.macroRelLabel,
           "REL"
         ),
         SettingEntry::InputText(
-          _N("Empty field (3-char)"),
+          _N("Empty field (4-char)"),
           "emptyLabel",&settings.emptyLabel,
           "..."
         ),
@@ -3045,10 +3045,9 @@ void FurnaceGUI::initSettings() {
             }
             ImGui::TableNextColumn();
             if (i.val<100) {
-              const char* note=noteName(i.val+60);
-              snprintf(id,4095,_("%%2d (%c%c, +%d oct.)"),
-                note[0],note[1]=='-'?' ':note[1],i.val/12);
-              if (ImGui::InputScalar("##SNValue",ImGuiDataType_S32,&i.val,&_ONE,&_TWELVE,id)) {
+              snprintf(id,4095,_("%%2d (%s, +%d oct.)"),
+                baseNoteNames31[i.val%31],i.val/31);
+              if (ImGui::InputScalar("##SNValue",ImGuiDataType_S32,&i.val,&_ONE,&_THIRTY_ONE,id)) {
                 if (i.val<0) i.val=0;
                 if (i.val>96) i.val=96;
                 ret=true;

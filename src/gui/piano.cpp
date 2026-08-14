@@ -70,21 +70,21 @@ void FurnaceGUI::pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note) {
       padding=ImGui::GetStyle().ItemSpacing.y;
       break;
     case PIANO_LABELS_NOTE:
-      label=noteNames[60+(note%12)][0];
+      label=baseNoteNames31[note%31][0];
       padding=ImGui::GetStyle().ItemSpacing.y;
       break;
     case PIANO_LABELS_NOTE_C:
       if ((note%12)==0) {
         label+=fmt::sprintf("%d\nC",(note-60)/12);
       } else {
-        label=noteNames[60+(note%12)][0];
+        label=baseNoteNames31[note%31][0];
       }
       break;
     case PIANO_LABELS_OCTAVE_C:
       label=fmt::sprintf("C\n%d",(note-60)/12);
       break;
     case PIANO_LABELS_OCTAVE_NOTE:
-      label=fmt::sprintf("%c\n%d",noteNames[60+(note%12)][0],(note-60)/12);
+      label=fmt::sprintf("%c\n%d",baseNoteNames31[note%31][0],(note-60)/12);
       break;
   }
   ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));

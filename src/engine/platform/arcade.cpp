@@ -499,11 +499,15 @@ void DivPlatformArcade::tick(bool sysTick) {
             chan[i].freq+=chan[i].arpOff<<7;
           }
         }
-        chan[i].freq+=OFFSET_LINEAR;
-        if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
-        immWrite(i+0x28,hScale(chan[i].freq>>7));
-        immWrite(i+0x30,((chan[i].freq<<1)&0xfc));
+        // KC/KF are 12-EDO hardware registers. convert the channel's 31-EDO 8.7
+        // pitch into the 12-EDO 8.7 pitch of the same frequency (A-4 is slot 85
+        // here and slot 117 there), then run the usual pipeline in 12-space.
+        int freq12=(117<<7)+(int)round((double)(chan[i].freq-(DIV_EDO31_A4<<7))*12.0/(double)DIV_EDO31_STEPS);
+        freq12+=OFFSET_LINEAR;
+        if (freq12<0) freq12=0;
+        if (freq12>=(95<<7)) freq12=(95<<7)-1;
+        immWrite(i+0x28,hScale(freq12>>7));
+        immWrite(i+0x30,((freq12<<1)&0xfc));
       }
       hardResetElapsed+=2;
       chan[i].freqChanged=false;

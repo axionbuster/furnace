@@ -46,11 +46,6 @@ void DivEngine::nextOrder() {
   }
 }
 
-// used for the pattern visualizer in console mode.
-static const char* notes[12]={
-  "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
-};
-
 // update this when adding new commands in dispatch.h.
 const char* cmdName[]={
   "NOTE_ON",
@@ -350,16 +345,17 @@ static_assert((sizeof(cmdName)/sizeof(void*))==DIV_CMD_MAX,"update cmdName!");
 // of a static array.
 const char* formatNote(short note) {
   static char ret[16];
+  // note cells are four characters wide in 31-EDO.
   if (note==DIV_NOTE_OFF) {
-    return "OFF";
+    return "OFF ";
   } else if (note==DIV_NOTE_REL) {
-    return "===";
+    return "=== ";
   } else if (note==DIV_MACRO_REL) {
-    return "REL";
-  } else if (note<0) {
-    return "---";
+    return "REL ";
+  } else if (note<0 || note>=180) {
+    return "--- ";
   }
-  snprintf(ret,16,"%s%d",notes[note%12],(note-60)/12);
+  edo31FormatNote(note,ret);
   return ret;
 }
 
@@ -416,7 +412,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
             }
             // set current MIDI note
             if (c.value!=DIV_NOTE_NULL) {
-              chan[c.chan].curMidiNote=c.value-60+12;
+              chan[c.chan].curMidiNote=edo31SlotToMidi(c.value);
               if (chan[c.chan].curMidiNote<0) chan[c.chan].curMidiNote=0;
               if (chan[c.chan].curMidiNote>127) chan[c.chan].curMidiNote=127;
             }
@@ -481,7 +477,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
               // and only if we have a target note
               if (c.value<=0 || c.value>=255) break;
               //output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
-              int target=c.value-60+12;
+              int target=edo31SlotToMidi(c.value);
               if (target<0) target=0;
               if (target>127) target=127;
 
@@ -2972,7 +2968,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             pendingNotes.push_back(DivNoteEvent(chan,-1,0,-1,false,false,true));
           } else {
             // find a suitable channel and add this event to the queue
-            autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
+            autoNoteOff(msg.type&15,edo31MidiToSlot(msg.data[0]),msg.data[1]);
           }
           // start the engine if necessary
           if (!playing) {
@@ -2991,16 +2987,16 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               pendingNotes.push_back(DivNoteEvent(chan,-1,0,-1,false,false,true));
             } else {
               // find a suitable channel and add this event to the queue
-              autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
+              autoNoteOff(msg.type&15,edo31MidiToSlot(msg.data[0]),msg.data[1]);
             }
           } else {
             if (midiIsDirect) {
               // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=song.chans) break;
-              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12+60,msg.data[1],true,false,true));
+              pendingNotes.push_back(DivNoteEvent(chan,ins,edo31MidiToSlot(msg.data[0]),msg.data[1],true,false,true));
             } else {
               // find a suitable channel and add this event to the queue
-              autoNoteOn(msg.type&15,ins,msg.data[0]-12+60,msg.data[1]);
+              autoNoteOn(msg.type&15,ins,edo31MidiToSlot(msg.data[0]),msg.data[1]);
             }
           }
           break;

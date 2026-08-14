@@ -709,8 +709,8 @@ const char* macroDummyMode="Bug";
 String macroHoverNote(int id, float val, void* u) {
   int* macroVal=(int*)u;
   if ((macroVal[id]&0xc0000000)==0x40000000 || (macroVal[id]&0xc0000000)==0x80000000) {
-    if (val<-60 || val>=120) return "???";
-    return fmt::sprintf("%d: %s",id,noteNames[(int)val+60]);
+    if (val<-62 || val>=118) return "???";
+    return fmt::sprintf("%d: %s",id,noteNames[(int)val+62]);
   }
   return fmt::sprintf("%d: %d",id,(int)val);
 }
@@ -2134,8 +2134,8 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
     if (MACRO_VZOOM<1) {
       if (i.macro->macroType==DIV_MACRO_ARP || i.isArp) {
-        MACRO_VZOOM=24;
-        MACRO_VSCROLL=120-12;
+        MACRO_VZOOM=62;
+        MACRO_VSCROLL=120-31;
       }
       else if ((i.macro->macroType == DIV_MACRO_PITCH || i.isPitch) || (i.macro->macroType == DIV_MACRO_EX7 && i.isPitch)) {
         MACRO_VZOOM=128;

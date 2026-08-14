@@ -579,14 +579,14 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.noteMode)) {
                 if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=180) {
-                  i.note=108;
+                  i.note=DIV_EDO31_MIDDLE_C;
                 }
                 NoteSelector(&i.note, i.noteMode!=GUI_QUERY_RANGE && i.noteMode!=GUI_QUERY_RANGE_NOT);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.noteMode)) {
                 if (i.noteMax<0 || i.noteMax>=256) {
-                  i.noteMax=108;
+                  i.noteMax=DIV_EDO31_MIDDLE_C;
                 }
                 NoteSelector(&i.noteMax, false);
               }

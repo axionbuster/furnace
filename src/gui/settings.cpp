@@ -704,10 +704,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
   if (dpiScale<0.1) dpiScale=0.1;
 
-  setupLabel(settings.noteOffLabel.c_str(),noteOffLabel,3);
-  setupLabel(settings.noteRelLabel.c_str(),noteRelLabel,3);
-  setupLabel(settings.macroRelLabel.c_str(),macroRelLabel,3);
-  setupLabel(settings.emptyLabel.c_str(),emptyLabel,3);
+  setupLabel(settings.noteOffLabel.c_str(),noteOffLabel,4);
+  setupLabel(settings.noteRelLabel.c_str(),noteRelLabel,4);
+  setupLabel(settings.macroRelLabel.c_str(),macroRelLabel,4);
+  setupLabel(settings.emptyLabel.c_str(),emptyLabel,4);
   setupLabel(settings.emptyLabel2.c_str(),emptyLabel2,2);
 
   if (updateFonts) {

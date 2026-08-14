@@ -27,14 +27,6 @@ static const char* gbEnvDir[2]={
   "down", "up"
 };
 
-static const char* notes[12]={
-  "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
-};
-
-static const char* notesNegative[12]={
-  "c_", "c+", "d_", "d+", "e_", "f_", "f+", "g_", "g+", "a_", "a+", "b_"
-};
-
 static const char* sampleLoopModes[4]={
   "forward", "backward", "ping-pong", "invalid"
 };
@@ -322,23 +314,25 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
             short note, octave;
             noteToSplitNote(p->newData[k][DIV_PAT_NOTE],note,octave);
 
+            // note cells are four characters wide in 31-EDO.
             if (note==0 && octave==0) {
-              w->writeText("|... ");
+              w->writeText("|...  ");
             } else if (note==100) {
-              w->writeText("|OFF ");
+              w->writeText("|OFF  ");
             } else if (note==101) {
-              w->writeText("|=== ");
+              w->writeText("|===  ");
             } else if (note==102) {
-              w->writeText("|REL ");
-            } else if ((octave>9 && octave<250) || note>12) {
-              w->writeText("|??? ");
+              w->writeText("|REL  ");
+            } else if (note>DIV_EDO31_STEPS || octave<1 || octave>7) {
+              w->writeText("|???  ");
             } else {
-              if (octave>=128) octave-=256;
-              if (note>11) {
-                note-=12;
+              char noteName[5];
+              if (note>=DIV_EDO31_STEPS) {
+                note-=DIV_EDO31_STEPS;
                 octave++;
               }
-              w->writeText(fmt::sprintf("|%s%d ",(octave<0)?notesNegative[note]:notes[note],(octave<0)?(-octave):octave));
+              edo31FormatNote(DIV_EDO31_STEPS*(octave-2)+note,noteName);
+              w->writeText(fmt::sprintf("|%s ",noteName));
             }
 
             if (p->newData[k][DIV_PAT_INS]==-1) {

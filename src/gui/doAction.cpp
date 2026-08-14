@@ -375,6 +375,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_BACKUPS_MANAGER:
       nextWindow=GUI_WINDOW_BACKUPS_MANAGER;
       break;
+    case GUI_ACTION_WINDOW_TERPSTRA:
+      nextWindow=GUI_WINDOW_TERPSTRA;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -498,6 +501,9 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_BACKUPS_MANAGER:
           backupsManagerOpen=false;
           break;
+        case GUI_WINDOW_TERPSTRA:
+          terpstraOpen=false;
+          break;
         default:
           break;
       }
@@ -511,10 +517,10 @@ void FurnaceGUI::doAction(int what) {
       doTranspose(-1,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_OCTAVE_UP:
-      doTranspose(12,opMaskTransposeNote);
+      doTranspose(31,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_OCTAVE_DOWN:
-      doTranspose(-12,opMaskTransposeNote);
+      doTranspose(-31,opMaskTransposeNote);
       break;
     case GUI_ACTION_PAT_VALUE_UP:
       doTranspose(1,opMaskTransposeValue);

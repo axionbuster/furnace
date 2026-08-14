@@ -191,7 +191,7 @@ void FurnaceGUI::drawPattern() {
     twoChars=ImVec2(oneCharSize*2.0f,patLineHeight);
     oneChar=ImVec2(oneCharSize,patLineHeight);
 
-    noteCellSize=threeChars;
+    noteCellSize=fourChars;
     noteCellSize.x+=(float)settings.noteCellSpacing*dpiScale;
     insCellSize=twoChars;
     insCellSize.x+=(float)settings.insCellSpacing*dpiScale;
@@ -1393,9 +1393,9 @@ void FurnaceGUI::drawPattern() {
             }
           } else {
             if (pat->newData[row][DIV_PAT_NOTE]==-1) {
-              dl->AddText(pos,inactiveColor,idN,idN+3);
+              dl->AddText(pos,inactiveColor,idN,idN+4);
             } else {
-              dl->AddText(pos,activeColor,idN,idN+3);
+              dl->AddText(pos,activeColor,idN,idN+4);
             }
           }
 

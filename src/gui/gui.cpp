@@ -109,14 +109,14 @@ const char* FurnaceGUI::noteName(short note) {
   } else if (note==DIV_MACRO_REL) { // envelope release only
     return macroRelLabel;
   } else if (note==DIV_NOTE_RAW) { // this shouldn't be normally visible, but is here just in case
-    return "RAW";
+    return "RAW ";
   } else if (note==-1) {
     return emptyLabel;
   } else if (note==DIV_NOTE_NULL_PAT) {
-    return "BUG";
+    return "BUG ";
   }
   if (note<0 || note>=180) {
-    return "???";
+    return "??? ";
   }
   if (settings.flatNotes) {
     if (settings.germanNotation) return noteNamesGF[note];
@@ -127,28 +127,32 @@ const char* FurnaceGUI::noteName(short note) {
 }
 
 bool FurnaceGUI::decodeNote(const char* what, short& note) {
-  if (strlen(what)!=3) return false;
-  if (strcmp(what,"...")==0) {
+  if (strlen(what)!=4) return false;
+  // the special labels are three characters padded to the note cell's width
+  char trimmed[5];
+  memcpy(trimmed,what,5);
+  if (trimmed[3]==' ') trimmed[3]=0;
+  if (strcmp(trimmed,"...")==0) {
     note=-1;
     return true;
   }
-  if (strcmp(what,"???")==0) {
+  if (strcmp(trimmed,"???")==0) {
     note=DIV_NOTE_NULL_PAT;
     return true;
   }
-  if (strcmp(what,"OFF")==0) {
+  if (strcmp(trimmed,"OFF")==0) {
     note=DIV_NOTE_OFF;
     return true;
   }
-  if (strcmp(what,"===")==0) {
+  if (strcmp(trimmed,"===")==0) {
     note=DIV_NOTE_REL;
     return true;
   }
-  if (strcmp(what,"REL")==0) {
+  if (strcmp(trimmed,"REL")==0) {
     note=DIV_MACRO_REL;
     return true;
   }
-  if (strcmp(what,"RAW")==0) {
+  if (strcmp(trimmed,"RAW")==0) {
     // TODO: how are we gonna handle this raw frequency?
     note=DIV_NOTE_RAW;
     return true;
@@ -582,21 +586,21 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
   } else if (*value==DIV_NOTE_OFF) {
     snprintf(tempID,64,"%s##NOFF",noteOffLabel);
   } else if (*value>=0 && *value<180) {
-    snprintf(tempID,64,"%c%c",noteNames[60+(*value%12)][0],(noteNames[60+(*value%12)][1]=='-')?' ':noteNames[60+(*value%12)][1]);
+    snprintf(tempID,64,"%s",baseNoteNames31[*value%31]);
   } else {
     snprintf(tempID,64,"???");
     *value=0;
   }
   float width=ImGui::GetContentRegionAvail().x/2-ImGui::GetStyle().FramePadding.x;
   ImGui::SetNextItemWidth(width);
-  int note=(*value)%12;
-  int oct=-5;
-  if (*value<180) oct=(*value-note-60)/12;
+  int note=(*value)%31;
+  int oct=GUI_EDIT_OCTAVE_MIN;
+  if (*value<180) oct=(*value/31)+2;
   ImGui::BeginGroup();
   ImGui::PushID(value);
   if (ImGui::BeginCombo("##NoteSelectorNote",tempID)) {
-    for (int j=0; j<12; j++) {
-      snprintf(tempID,64,"%c%c",noteNames[60+j][0],(noteNames[60+j][1]=='-')?' ':noteNames[60+j][1]);
+    for (int j=0; j<31; j++) {
+      snprintf(tempID,64,"%s",baseNoteNames31[j]);
       if (ImGui::Selectable(tempID,note==j && *value<180)) {
         note=j;
         calcNote=true;
@@ -634,7 +638,7 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
     }
   }
   if (calcNote) {
-    *value=(oct+5)*12+note;
+    *value=CLAMP((oct-2)*31+note,0,179);
     ret=true;
   }
   ImGui::PopID();
@@ -1415,9 +1419,9 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
   auto it=noteKeys.find(scancode);
   if (it!=noteKeys.cend()) {
     int key=it->second;
-    int num=12*curOctave+key;
-    if (num<-60) num=-60; // C-(-5)
-    if (num>119) num=119; // B-9
+    int num=31*(curOctave-2)+key;
+    if (num<0) num=0; // C-2
+    if (num>179) num=179; // Bbb-7
 
     if (key==100) return;
     if (key==101) return;
@@ -1425,7 +1429,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
     if (key==103) return;
 
     e->synchronized([this,num]() {
-      e->autoNoteOff(-1,num+60);
+      e->autoNoteOff(-1,num);
       failedNoteOn=false;
     });
   }
@@ -1977,12 +1981,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           auto it=noteKeys.find(ev.key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=12*curOctave+key;
+            int num=31*(curOctave-2)+key;
 
-            if (num<-60) num=-60; // C-(-5)
-            if (num>119) num=119; // B-9
+            if (num<0) num=0; // C-2
+            if (num>179) num=179; // Bbb-7
 
-            alterSampleMap(1,num+60);
+            alterSampleMap(1,num);
             return;
           }
           break;
@@ -2069,10 +2073,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               auto it=noteKeys.find(ev.key.keysym.scancode);
               if (it!=noteKeys.cend()) {
                 int key=it->second;
-                int num=12*curOctave+key+60;
+                int num=31*(curOctave-2)+key;
 
-                if (num<0) num=0; // C-(-5)
-                if (num>179) num=179; // B-9
+                if (num<0) num=0; // C-2
+                if (num>179) num=179; // Bbb-7
 
                 if (edit) {
                   noteInput(num,key,-1,chordInputOffset);
@@ -3914,8 +3918,8 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
   if (ImGui::MenuItem(_("note up"),BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
   if (ImGui::MenuItem(_("note down"),BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
-  if (ImGui::MenuItem(_("octave up"),BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12,opMaskTransposeNote);
-  if (ImGui::MenuItem(_("octave down"),BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-12,opMaskTransposeNote);
+  if (ImGui::MenuItem(_("octave up"),BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(31,opMaskTransposeNote);
+  if (ImGui::MenuItem(_("octave down"),BIND_FOR(GUI_ACTION_PAT_OCTAVE_DOWN)))  doTranspose(-31,opMaskTransposeNote);
   ImGui::Separator();
   if (ImGui::MenuItem(_("values up"),BIND_FOR(GUI_ACTION_PAT_VALUE_UP))) doTranspose(1,opMaskTransposeValue);
   if (ImGui::MenuItem(_("values down"),BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN))) doTranspose(-1,opMaskTransposeValue);
@@ -3926,7 +3930,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   ImGui::Text(_("transpose"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
-  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,12)) {
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,31)) {
     if (transposeAmount<-96) transposeAmount=-96;
     if (transposeAmount>96) transposeAmount=96;
   }
@@ -4200,7 +4204,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=12*curOctave+key;
+            int num=CLAMP(31*(curOctave-2)+key,0,179);
             if (key!=100 && key!=101 && key!=102 && key!=103) {
               int pStart=-1;
               int pEnd=-1;
@@ -4215,7 +4219,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
                   }
                 }
               }
-              e->previewSample(curSample,num+60,pStart,pEnd);
+              e->previewSample(curSample,num,pStart,pEnd);
               samplePreviewOn=true;
               samplePreviewKey=ev->key.keysym.scancode;
               samplePreviewNote=num;
@@ -4228,9 +4232,9 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=12*curOctave+key;
+            int num=CLAMP(31*(curOctave-2)+key,0,179);
             if (key!=100 && key!=101 && key!=102 && key!=103) {
-              e->previewWave(curWave,num+60);
+              e->previewWave(curWave,num);
               wavePreviewOn=true;
               wavePreviewKey=ev->key.keysym.scancode;
               wavePreviewNote=num;
@@ -4264,13 +4268,13 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=12*curOctave+key;
+            int num=31*(curOctave-2)+key;
 
-            if (num<-60) num=-60; // C-(-5)
-            if (num>119) num=119; // B-9
+            if (num<0) num=0; // C-2
+            if (num>179) num=179; // Bbb-7
 
             if (key!=100 && key!=101 && key!=102 && key!=103) {
-              previewNote(cursor.xCoarse,num+60);
+              previewNote(cursor.xCoarse,num);
             }
           }
           break;
@@ -4622,6 +4626,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(refPlayer)
   DECLARE_METRIC(multiInsSetup)
   DECLARE_METRIC(backupsManager)
+  DECLARE_METRIC(terpstra)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -5003,7 +5008,7 @@ bool FurnaceGUI::loop() {
             if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
               if (midiMap.noteInput && edit && msg.data[1]!=0) {
                 noteInput(
-                  msg.data[0]-12+60,
+                  edo31MidiToSlot(msg.data[0]),
                   0,
                   midiMap.volInput?msg.data[1]:-1,
                   chordInputOffset
@@ -5669,6 +5674,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("effect list"),BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem(_("play/edit controls"),BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
         if (ImGui::MenuItem(_("piano/input pad"),BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
+        if (ImGui::MenuItem(_("Terpstra keyboard"),BIND_FOR(GUI_ACTION_WINDOW_TERPSTRA),terpstraOpen)) terpstraOpen=!terpstraOpen;
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
         if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
@@ -5886,6 +5892,7 @@ bool FurnaceGUI::loop() {
       MEASURE(tuner,drawTuner());
       MEASURE(spectrum,drawSpectrum());
       MEASURE(backupsManager,drawBackupsManager());
+      MEASURE(terpstra,drawTerpstra());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(0,NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplit|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5934,6 +5941,7 @@ bool FurnaceGUI::loop() {
       MEASURE(refPlayer,drawRefPlayer());
       MEASURE(multiInsSetup,drawMultiInsSetup());
       MEASURE(backupsManager,drawBackupsManager());
+      MEASURE(terpstra,drawTerpstra());
 
     }
 
@@ -7459,8 +7467,8 @@ bool FurnaceGUI::loop() {
           ImGui::Text(_("Starting octave"));
           ImGui::SameLine();
           if (ImGui::InputInt("##DKOctave",&makeDrumkitOctave,1,3)) {
-            if (makeDrumkitOctave<-5) makeDrumkitOctave=-5;
-            if (makeDrumkitOctave>9) makeDrumkitOctave=9;
+            if (makeDrumkitOctave<GUI_EDIT_OCTAVE_MIN) makeDrumkitOctave=GUI_EDIT_OCTAVE_MIN;
+            if (makeDrumkitOctave>GUI_EDIT_OCTAVE_MAX) makeDrumkitOctave=GUI_EDIT_OCTAVE_MAX;
           }
         }
 
@@ -7482,15 +7490,15 @@ bool FurnaceGUI::loop() {
 
               if (makeDrumkitMode) {
                 for (int j=0; j<180; j++) {
-                  e->song.ins[curIns]->amiga.noteMap[j].freq=108;
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=DIV_EDO31_MIDDLE_C;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   e->song.ins[curIns]->amiga.noteMap[j].map=j%12;
                   if ((j%12)>=e->song.sampleLen) continue;
                 }
               } else {
-                int index=-(makeDrumkitOctave+5)*12;
+                int index=-(makeDrumkitOctave-2)*31;
                 for (int j=0; j<180; j++) {
-                  e->song.ins[curIns]->amiga.noteMap[j].freq=108;
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=DIV_EDO31_MIDDLE_C;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   if (index<0 || index>=e->song.sampleLen) {
                     index++;
@@ -8794,10 +8802,10 @@ bool FurnaceGUI::init() {
 
     if (curWindowThreadSafe==GUI_WINDOW_WAVE_EDIT || curWindowThreadSafe==GUI_WINDOW_WAVE_LIST) {
       if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
-        e->previewWaveNoLock(curWave,msg.data[0]-12+60);
-        wavePreviewNote=msg.data[0]-12;
+        e->previewWaveNoLock(curWave,edo31MidiToSlot(msg.data[0]));
+        wavePreviewNote=edo31MidiToSlot(msg.data[0]);
       } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
-        if (wavePreviewNote==msg.data[0]-12) {
+        if (wavePreviewNote==edo31MidiToSlot(msg.data[0])) {
           e->stopWavePreviewNoLock();
         }
       }
@@ -8806,10 +8814,10 @@ bool FurnaceGUI::init() {
 
     if (curWindowThreadSafe==GUI_WINDOW_SAMPLE_EDIT || curWindowThreadSafe==GUI_WINDOW_SAMPLE_LIST) {
       if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
-        e->previewSampleNoLock(curSample,msg.data[0]-12+60);
-        samplePreviewNote=msg.data[0]-12;
+        e->previewSampleNoLock(curSample,edo31MidiToSlot(msg.data[0]));
+        samplePreviewNote=edo31MidiToSlot(msg.data[0]);
       } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
-        if (samplePreviewNote==msg.data[0]-12) {
+        if (samplePreviewNote==edo31MidiToSlot(msg.data[0])) {
           e->stopSamplePreviewNoLock();
         }
       }
@@ -9011,6 +9019,7 @@ void FurnaceGUI::syncState() {
   refPlayerOpen=e->getConfBool("refPlayerOpen",false);
   multiInsSetupOpen=e->getConfBool("multiInsSetupOpen",false);
   backupsManagerOpen=e->getConfBool("backupsManagerOpen",false);
+  terpstraOpen=e->getConfBool("terpstraOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -9082,6 +9091,10 @@ void FurnaceGUI::syncState() {
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
   pianoLabelsMode=e->getConfInt("pianoLabelsMode",pianoLabelsMode);
   pianoKeyColorMode=e->getConfInt("pianoKeyColorMode",pianoKeyColorMode);
+
+  terpstraPanX=e->getConfFloat("terpstraPanX",terpstraPanX);
+  terpstraPanY=e->getConfFloat("terpstraPanY",terpstraPanY);
+  terpstraZoom=e->getConfFloat("terpstraZoom",terpstraZoom);
 
   chanOscCols=e->getConfInt("chanOscCols",3);
   chanOscAutoCols=e->getConfBool("chanOscAutoColsType",0);
@@ -9193,6 +9206,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("refPlayerOpen",refPlayerOpen);
   conf.set("multiInsSetupOpen",multiInsSetupOpen);
   conf.set("backupsManagerOpen",backupsManagerOpen);
+  conf.set("terpstraOpen",terpstraOpen);
 
   // commit dir state
   conf.set("insListDir",insListDir);
@@ -9255,6 +9269,11 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("pianoInputPadMode",pianoInputPadMode);
   conf.set("pianoLabelsMode",pianoLabelsMode);
   conf.set("pianoKeyColorMode",pianoKeyColorMode);
+
+  // commit Terpstra keyboard state
+  conf.set("terpstraPanX",terpstraPanX);
+  conf.set("terpstraPanY",terpstraPanY);
+  conf.set("terpstraZoom",terpstraZoom);
 
   // commit per-chan osc state
   conf.set("chanOscCols",chanOscCols);
@@ -9486,7 +9505,7 @@ FurnaceGUI::FurnaceGUI():
   waveEditStyle(0),
   chordInputOffset(0),
   displayInsTypeListMakeInsSample(-1),
-  makeDrumkitOctave(3),
+  makeDrumkitOctave(4),
   mobileEditPage(0),
   wheelCalmDown(0),
   shallDetectScale(0),
@@ -9568,7 +9587,7 @@ FurnaceGUI::FurnaceGUI():
   curIns(0),
   curWave(0),
   curSample(0),
-  curOctave(3),
+  curOctave(4),
   curOrder(0),
   playOrder(0),
   prevIns(0),
@@ -9657,6 +9676,7 @@ FurnaceGUI::FurnaceGUI():
   refPlayerOpen(false),
   multiInsSetupOpen(false),
   backupsManagerOpen(false),
+  terpstraOpen(false),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),
@@ -9982,6 +10002,9 @@ FurnaceGUI::FurnaceGUI():
   pianoLabelsMode(PIANO_LABELS_OCTAVE),
   pianoKeyColorMode(PIANO_KEY_COLOR_SINGLE),
 #endif
+  terpstraPanX(0.0f),
+  terpstraPanY(0.0f),
+  terpstraZoom(1.0f),
   hasACED(false),
   waveGenBaseShape(0),
   waveInterpolation(0),
@@ -10125,6 +10148,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(pianoKeyHit,0,sizeof(pianoKeyState)*180); // posiblly repace with a for loop
   memset(pianoKeyPressed,0,sizeof(bool)*180);
+  memset(terpstraKeyPressed,0,sizeof(bool)*180);
 
   memset(queryReplaceEffectMode,0,sizeof(int)*8);
   memset(queryReplaceEffectValMode,0,sizeof(int)*8);
@@ -10148,9 +10172,9 @@ FurnaceGUI::FurnaceGUI():
   memset(multiIns,-1,7*sizeof(int));
   memset(multiInsTranspose,0,7*sizeof(int));
 
-  strncpy(noteOffLabel,"OFF",32);
-  strncpy(noteRelLabel,"===",32);
-  strncpy(macroRelLabel,"REL",32);
-  strncpy(emptyLabel,"...",32);
+  strncpy(noteOffLabel,"OFF ",32);
+  strncpy(noteRelLabel,"=== ",32);
+  strncpy(macroRelLabel,"REL ",32);
+  strncpy(emptyLabel,"... ",32);
   strncpy(emptyLabel2,"..",32);
 }

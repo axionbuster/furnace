@@ -1848,7 +1848,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
   }
-  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note-60+3)/12.0);
+  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(double)(note-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+5.0);
   return period?
          (clock/base)/divider:
          base*(divider/clock);
@@ -1864,7 +1864,8 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
     boundaryTop>>=1; \
     boundaryBottom>>=1; \
   } \
-  int block=((note)-60)/12; \
+  /* 62/31: the block of the 12-EDO note which sounds at the same pitch as this slot */ \
+  int block=((note)+62)/DIV_EDO31_STEPS; \
   if (block<0) block=0; \
   if (block>7) block=7; \
   bf>>=block; \
@@ -1918,7 +1919,7 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
         nbase+=arp<<7;
       }
     }
-    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384-7680)/(128.0*12.0));
+    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(double)(nbase-(DIV_EDO31_A4<<7))/(128.0*(double)DIV_EDO31_STEPS)+5.0);
     int bf=period?
            round((clock/fbase)/divider):
            round(fbase*(divider/clock));
@@ -2308,9 +2309,12 @@ short DivEngine::splitNoteToNote(short note, short octave) {
   } else if (note==0 && octave==0) {
     return -1;
   } else {
-    int seek=(note+(signed char)octave*12)+60;
-    if (seek<0 || seek>=180) {
-      return DIV_NOTE_NULL_PAT;
+    // 12-EDO import boundary: embed the incoming semitone on the nearest 31-EDO step
+    int seek=DIV_EDO31_MIDDLE_C+(int)round((double)((note+(signed char)octave*12)+60-108)*(double)DIV_EDO31_STEPS/12.0);
+    if (seek<0) {
+      return 0;
+    } else if (seek>179) {
+      return 179;
     } else {
       return seek;
     }
@@ -2343,10 +2347,10 @@ void DivEngine::noteToSplitNote(short note, short& outNote, short& outOctave) {
       outOctave=0;
       break;
     default:
-      outNote=note%12;
-      outOctave=(unsigned char)(note-60)/12;
+      outNote=note%DIV_EDO31_STEPS;
+      outOctave=(note/DIV_EDO31_STEPS)+2;
       if (outNote==0) {
-        outNote=12;
+        outNote=DIV_EDO31_STEPS;
         outOctave--;
       }
       break;
@@ -2390,7 +2394,7 @@ void DivEngine::previewSampleNoLock(int sample, int note, int pStart, int pEnd) 
   blip_clear(samp_bb);
   double rate=song.sample[sample]->centerRate;
   if (note>=0) {
-    rate=(pow(2.0,(double)(note-60)/12.0)*((double)song.sample[sample]->centerRate)*0.0625);
+    rate=(pow(2.0,(double)(note-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+4.75)*((double)song.sample[sample]->centerRate)*0.0625);
     if (rate<=0) rate=song.sample[sample]->centerRate;
   }
   if (rate<100) rate=100;
@@ -2427,7 +2431,7 @@ void DivEngine::previewWaveNoLock(int wave, int note) {
     return;
   }
   blip_clear(samp_bb);
-  double rate=song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3-60)/12.0));
+  double rate=song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+5.0));
   if (rate<100) rate=100;
   double rateOrig=rate;
   sPreview.rateMul=1;

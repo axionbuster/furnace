@@ -207,7 +207,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
   if (chan[ch].rawFreq) return chan[ch].calcFreq();
 
   int easyStartingPeriod=16;
-  int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64+60*128;
+  int easyThreshold=round(128.0*(double)DIV_EDO31_STEPS*(log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0)-5.0))+64+(DIV_EDO31_A4<<7);
   int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);
   if (chan[ch].fixedArp) {
     curFreq=chan[ch].baseNoteOverride<<7;

@@ -36,21 +36,22 @@ static const char* modPlugFormatHeaders[]={
 };
 
 const char* FurnaceGUI::noteNameNormal(short note) {
+  // these are padded to four characters because the note cell is fixed width
   if (note==DIV_NOTE_OFF) { // note cut
-    return "OFF";
+    return "OFF ";
   } else if (note==DIV_NOTE_REL) { // note off and envelope release
-    return "===";
+    return "=== ";
   } else if (note==DIV_MACRO_REL) { // envelope release only
-    return "REL";
+    return "REL ";
   } else if (note==DIV_NOTE_RAW) { // this shouldn't be normally visible, but is here just in case
-    return "RAW";
+    return "RAW ";
   } else if (note==-1) {
-    return "...";
+    return "... ";
   } else if (note==DIV_NOTE_NULL_PAT) {
-    return "BUG";
+    return "BUG ";
   }
   if (note<0 || note>=180) {
-    return "???";
+    return "??? ";
   }
   return noteNames[note];
 }
@@ -704,9 +705,14 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
           break;
         }
         note[2]=line[charPos++];
+        if (charPos>=line.size()) {
+          invalidData=true;
+          break;
+        }
+        note[3]=line[charPos++];
         if (note[0]=='r') {
           // raw frequency
-          for (int _i=3; _i<9; _i++) {
+          for (int _i=4; _i<9; _i++) {
             if (charPos>=line.size()) {
               invalidData=true;
               break;
@@ -716,7 +722,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
           if (invalidData) break;
           note[9]=0;
         } else {
-          note[3]=0;
+          note[4]=0;
         }
 
         if (iFine==0 && !opMaskPaste.note) {
@@ -725,7 +731,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
         }
 
         if ((mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG ||
-             mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) && strcmp(note,"...")==0) {
+             mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) && strcmp(note,"... ")==0) {
           // do nothing.
         } else {
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->newData[j][DIV_PAT_NOTE]==-1)) {
@@ -1109,6 +1115,9 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
         note[2]=line[charPos++];
         note[3]=0;
 
+        // foreign clipboards are 12-EDO and three characters wide, which no
+        // longer decodes into this fork's note space. left as-is; pasting from
+        // another tracker is unsupported.
         if (iFine==0 && !opMaskPaste.note) {
           iFine++;
           continue;
@@ -2037,7 +2046,7 @@ void FurnaceGUI::doAbsorbInstrument() {
         foundOctave=true;
 
         // decode octave data
-        int octave=(pat->newData[i][DIV_PAT_NOTE]-60)/12;
+        int octave=(pat->newData[i][DIV_PAT_NOTE]/31)+2;
 
         curOctave=CLAMP(octave-1,GUI_EDIT_OCTAVE_MIN,GUI_EDIT_OCTAVE_MAX);
       }

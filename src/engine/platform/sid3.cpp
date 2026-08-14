@@ -28,8 +28,8 @@
 #define CHIP_FREQBASE 524288*64
 
 #define CURRENT_FREQ_IN_HZ() ((double)chipClock / pow(2.0, (double)SID3_ACC_BITS) * (double)chan[i].freq)
-#define c_5_FREQ() (parent->song.tuning / pow(2, (12.0 * 9.0 + 9.0) / 12.0))
-#define FREQ_FOR_NOTE(note) (c_5_FREQ() * pow(2, (double)((note)-60) / 12.0))
+#define a_4_FREQ() (parent->song.tuning / pow(2, 5.0))
+#define FREQ_FOR_NOTE(note) (a_4_FREQ() * pow(2, (double)((note)-DIV_EDO31_A4) / (double)DIV_EDO31_STEPS))
 
 const char* regCheatSheetSID3[]={
   "FreqL0", "00",

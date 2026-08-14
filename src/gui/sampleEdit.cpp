@@ -761,7 +761,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
-          int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/e->getCenterRate())/log(2.0)));
+          int sampleNote=round(64.0+(128.0*31.0*log((double)targetRate/e->getCenterRate())/log(2.0)));
           int sampleNoteCoarse=60+(sampleNote>>7);
           int sampleNoteFine=(sampleNote&127)-64;
 
@@ -797,10 +797,10 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text(_("Note"));
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::BeginCombo("##SampleNote",noteNames[sampleNoteCoarse+60])) {
+          if (ImGui::BeginCombo("##SampleNote",noteNames[sampleNoteCoarse+2])) {
             char temp[1024];
             for (int i=0; i<120; i++) {
-              snprintf(temp,1023,"%s##_SRN%d",noteNames[i+60],i);
+              snprintf(temp,1023,"%s##_SRN%d",noteNames[i+2],i);
               if (ImGui::Selectable(temp,i==sampleNoteCoarse)) {
                 sampleNoteCoarse=i;
                 coarseChanged=true;
@@ -826,7 +826,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (coarseChanged) { MARK_MODIFIED
             sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
 
-            targetRate=e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0));
+            targetRate=e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*31.0));
             if (targetRate<100) targetRate=100;
 
             sample->centerRate=targetRate;
@@ -845,7 +845,7 @@ void FurnaceGUI::drawSampleEdit() {
 
             sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
 
-            targetRate=round(e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0)));
+            targetRate=round(e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*31.0)));
 
             if (targetRate==prevSampleRate) {
               if (prevFine==sampleNoteFine) {

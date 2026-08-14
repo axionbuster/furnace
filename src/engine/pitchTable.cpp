@@ -83,10 +83,10 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
     coarse=0;
   }
   int fine=offset&127;
-  int index=coarse%12;
+  int index=coarse%DIV_EDO31_STEPS;
   int octave=period?
-    ((coarse/12)-shift):
-    (shift-(coarse/12));
+    ((coarse/DIV_EDO31_STEPS)-shift):
+    (shift-(coarse/DIV_EDO31_STEPS));
 
   int root=pitch[index];
   int diff=pitchDiff[index];
@@ -137,10 +137,10 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
 int DivPitchTable::getBase(int note) {
   // non-linear pitch
   if (!linearity) {
-    int index=note%12;
+    int index=note%DIV_EDO31_STEPS;
     int octave=period?
-      ((note/12)-shift):
-      (shift-(note/12));
+      ((note/DIV_EDO31_STEPS)-shift):
+      (shift-(note/DIV_EDO31_STEPS));
 
     int root=pitch[index];
 
@@ -178,21 +178,25 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
   period=isPeriod;
   linearity=isLinear;
   maxFreq=maximum;
-  shift=period?0:14;
+  // the 31-EDO note space is 6 octaves wide instead of 15, so the shift range is
+  // the stock 0..14 one biased by -7. this keeps A-4 (slot 85) landing on the very
+  // same table entry and octave shift stock Furnace used for A-4 (slot 117), so
+  // the value there comes out bit-identical.
+  shift=period?-7:7;
 
   // adjust the shift value so that the highest (or lowest in period mode) note has the highest period/freq
   if (period) {
-    while (shift<14) {
-      int nbase=(shift-4)*12;
-      double fbase=(tuning*0.0625)*pow(2.0,(float)(nbase+3)/(12.0));
+    while (shift<7) {
+      int nbase=(shift+1)*DIV_EDO31_STEPS;
+      double fbase=(tuning*0.0625)*pow(2.0,(double)(nbase-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+5.0);
       int bf=round((clock/fbase)/divider);
       if (bf<=maximum) break;
       shift++;
     }
   } else {
-    while (shift>0) {
-      int nbase=(shift-5)*12;
-      double fbase=tuning*pow(2.0,(float)(nbase+3)/(12.0));
+    while (shift>-7) {
+      int nbase=shift*DIV_EDO31_STEPS;
+      double fbase=tuning*pow(2.0,(double)(nbase-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+5.0);
       int bf=round(fbase*(divider/clock));
       if (bf<=maximum) break;
       shift--;
@@ -202,16 +206,16 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
   logV("DivPitchTable init(%f,%f,%f,%x,%s)",tuning,clock,divider,maximum,isPeriod?"period":"freq");
   logV("(shift: %d)",shift);
 
-  for (int i=0; i<=12; i++) {
-    int nbase=i+(shift-5)*12;
-    double fbase=(period?(tuning*0.0625):tuning)*pow(2.0,(float)(nbase+3)/(12.0));
+  for (int i=0; i<=DIV_EDO31_STEPS; i++) {
+    int nbase=i+shift*DIV_EDO31_STEPS;
+    double fbase=(period?(tuning*0.0625):tuning)*pow(2.0,(double)(nbase-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+5.0);
     int bf=period?
            round((clock/fbase)/divider):
            round(fbase*(divider/clock));
     pitch[i]=bf;
   }
 
-  for (int i=0; i<12; i++) {
+  for (int i=0; i<DIV_EDO31_STEPS; i++) {
     pitchDiff[i]=pitch[i+1]-pitch[i];
     logV("- %d: %x (%x)",i,pitch[i],pitchDiff[i]);
   }
@@ -222,7 +226,9 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
 int DivPitchTableFNum::get(int base, int pitch1, int pitch2) {
   int offset=base+pitch1+pitch2;
 
-  int fNum=DivPitchTable::get(offset%1536,0,0);
+  // DIV_EDO31_OCTAVE_LINEAR is one octave in 8.7 units (was 1536 in 12-EDO).
+  // this class is unfinished and has no call sites - it is only kept building.
+  int fNum=DivPitchTable::get(offset%DIV_EDO31_OCTAVE_LINEAR,0,0);
   // I give up (for now). the whole F-Num thing is absolute sorcery.
   return fNum;
 }

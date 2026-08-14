@@ -21,6 +21,7 @@
 #define _FUR_GUI_H
 
 #include "../engine/engine.h"
+#include "../engine/edo31.h"
 #include "../engine/workPool.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
@@ -151,10 +152,14 @@ enum FurnaceGUIRenderBackend {
 #define ngettext momo_ngettext
 #endif
 
-#define GUI_EDIT_OCTAVE_MIN -5
+#define GUI_EDIT_OCTAVE_MIN 2
 #define GUI_EDIT_OCTAVE_MAX 7
 
-#define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;45:103;"
+// chromatic rows: ZXCVBNM,./ are steps 0-9, ASDFGHJKL;' are 10-20,
+// QWERTYUIOP are 21-30 and the number row continues from there. QWERTY has no
+// fifth row, so this is not an isomorphic layout - that is what the Terpstra
+// window and MIDI are for. 100-103 keep their stock bindings.
+#define DEFAULT_NOTE_KEYS "4:10;5:4;6:2;7:12;8:23;9:13;10:14;11:15;12:28;13:16;14:17;15:18;16:6;17:5;18:29;19:30;20:21;21:24;22:11;23:25;24:27;25:3;26:22;27:1;28:26;29:0;30:100;31:32;32:33;33:34;34:35;35:36;36:37;37:38;38:39;39:40;43:100;46:101;47:31;48:32;51:19;52:20;53:102;54:7;55:8;56:9;45:103;"
 
 // TODO:
 // - add colors for FM envelope and waveform
@@ -636,6 +641,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_REF_PLAYER,
   GUI_WINDOW_MULTI_INS_SETUP,
   GUI_WINDOW_BACKUPS_MANAGER,
+  GUI_WINDOW_TERPSTRA,
   GUI_WINDOW_SPOILER
 };
 
@@ -857,6 +863,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_REF_PLAYER,
   GUI_ACTION_WINDOW_MULTI_INS_SETUP,
   GUI_ACTION_WINDOW_BACKUPS_MANAGER,
+  GUI_ACTION_WINDOW_TERPSTRA,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -2521,7 +2528,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
-  bool multiInsSetupOpen, backupsManagerOpen;
+  bool multiInsSetupOpen, backupsManagerOpen, terpstraOpen;
 
   bool cvNotSerious;
 
@@ -2985,6 +2992,10 @@ class FurnaceGUI {
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode, pianoLabelsMode, pianoKeyColorMode;
 
+  // Terpstra keyboard
+  bool terpstraKeyPressed[180];
+  float terpstraPanX, terpstraPanY, terpstraZoom;
+
   // effect sorting / searching
   bool effectsShow[10];
   ImGuiTextFilter effectSearch;
@@ -3133,7 +3144,7 @@ class FurnaceGUI {
   // inverted checkbox
   bool InvCheckbox(const char* label, bool* value);
 
-  bool NoteSelector(int* value, bool showOffRel, int octaveMin=-5, int octaveMax=9);
+  bool NoteSelector(int* value, bool showOffRel, int octaveMin=GUI_EDIT_OCTAVE_MIN, int octaveMax=GUI_EDIT_OCTAVE_MAX);
 
   // mixer stuff
   bool chipMixer(int which, ImVec2 size);
@@ -3259,6 +3270,7 @@ class FurnaceGUI {
   void drawRefPlayer();
   void drawMultiInsSetup();
   void drawBackupsManager();
+  void drawTerpstra();
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f, int chanCount=-1);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);

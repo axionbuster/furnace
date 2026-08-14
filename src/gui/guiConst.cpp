@@ -48,76 +48,60 @@ const char* baseNoteNames[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
+const char* baseNoteNames31[31]={
+  "C",   "Dbb", "C#",  "Db",  "Cx",  "D",   "Ebb", "D#",
+  "Eb",  "Dx",  "E",   "Fb",  "E#",  "F",   "Gbb", "F#",
+  "Gb",  "Fx",  "G",   "Abb", "G#",  "Ab",  "Gx",  "A",
+  "Bbb", "A#",  "Bb",  "Ax",  "B",   "Cb",  "B#"
+};
+
+// 31-EDO fork: one canonical note name table, following edo31.h's naming rules.
+// every entry is exactly 4 characters (three-letter names put the octave digit
+// in the last slot, shorter ones pad with a space) because the pattern editor
+// and the clipboard both treat the note cell as fixed width.
+// the flat and German notation settings no longer change anything - 31-EDO
+// spelling already uses sharps, flats and doubles - so all four tables below
+// carry identical content.
+#define EDO31_NOTE_NAMES \
+  "C-2 ", "Dbb2", "C#2 ", "Db2 ", "Cx2 ", "D-2 ", "Ebb2", "D#2 ", \
+  "Eb2 ", "Dx2 ", "E-2 ", "Fb2 ", "E#2 ", "F-2 ", "Gbb2", "F#2 ", \
+  "Gb2 ", "Fx2 ", "G-2 ", "Abb2", "G#2 ", "Ab2 ", "Gx2 ", "A-2 ", \
+  "Bbb2", "A#2 ", "Bb2 ", "Ax2 ", "B-2 ", "Cb3 ", "B#2 ", \
+  "C-3 ", "Dbb3", "C#3 ", "Db3 ", "Cx3 ", "D-3 ", "Ebb3", "D#3 ", \
+  "Eb3 ", "Dx3 ", "E-3 ", "Fb3 ", "E#3 ", "F-3 ", "Gbb3", "F#3 ", \
+  "Gb3 ", "Fx3 ", "G-3 ", "Abb3", "G#3 ", "Ab3 ", "Gx3 ", "A-3 ", \
+  "Bbb3", "A#3 ", "Bb3 ", "Ax3 ", "B-3 ", "Cb4 ", "B#3 ", \
+  "C-4 ", "Dbb4", "C#4 ", "Db4 ", "Cx4 ", "D-4 ", "Ebb4", "D#4 ", \
+  "Eb4 ", "Dx4 ", "E-4 ", "Fb4 ", "E#4 ", "F-4 ", "Gbb4", "F#4 ", \
+  "Gb4 ", "Fx4 ", "G-4 ", "Abb4", "G#4 ", "Ab4 ", "Gx4 ", "A-4 ", \
+  "Bbb4", "A#4 ", "Bb4 ", "Ax4 ", "B-4 ", "Cb5 ", "B#4 ", \
+  "C-5 ", "Dbb5", "C#5 ", "Db5 ", "Cx5 ", "D-5 ", "Ebb5", "D#5 ", \
+  "Eb5 ", "Dx5 ", "E-5 ", "Fb5 ", "E#5 ", "F-5 ", "Gbb5", "F#5 ", \
+  "Gb5 ", "Fx5 ", "G-5 ", "Abb5", "G#5 ", "Ab5 ", "Gx5 ", "A-5 ", \
+  "Bbb5", "A#5 ", "Bb5 ", "Ax5 ", "B-5 ", "Cb6 ", "B#5 ", \
+  "C-6 ", "Dbb6", "C#6 ", "Db6 ", "Cx6 ", "D-6 ", "Ebb6", "D#6 ", \
+  "Eb6 ", "Dx6 ", "E-6 ", "Fb6 ", "E#6 ", "F-6 ", "Gbb6", "F#6 ", \
+  "Gb6 ", "Fx6 ", "G-6 ", "Abb6", "G#6 ", "Ab6 ", "Gx6 ", "A-6 ", \
+  "Bbb6", "A#6 ", "Bb6 ", "Ax6 ", "B-6 ", "Cb7 ", "B#6 ", \
+  "C-7 ", "Dbb7", "C#7 ", "Db7 ", "Cx7 ", "D-7 ", "Ebb7", "D#7 ", \
+  "Eb7 ", "Dx7 ", "E-7 ", "Fb7 ", "E#7 ", "F-7 ", "Gbb7", "F#7 ", \
+  "Gb7 ", "Fx7 ", "G-7 ", "Abb7", "G#7 ", "Ab7 ", "Gx7 ", "A-7 ", \
+  "Bbb7"
+
 const char* noteNames[180]={
-  "c_5", "c+5", "d_5", "d+5", "e_5", "f_5", "f+5", "g_5", "g+5", "a_5", "a+5", "b_5",
-  "c_4", "c+4", "d_4", "d+4", "e_4", "f_4", "f+4", "g_4", "g+4", "a_4", "a+4", "b_4",
-  "c_3", "c+3", "d_3", "d+3", "e_3", "f_3", "f+3", "g_3", "g+3", "a_3", "a+3", "b_3",
-  "c_2", "c+2", "d_2", "d+2", "e_2", "f_2", "f+2", "g_2", "g+2", "a_2", "a+2", "b_2",
-  "c_1", "c+1", "d_1", "d+1", "e_1", "f_1", "f+1", "g_1", "g+1", "a_1", "a+1", "b_1",
-  "C-0", "C#0", "D-0", "D#0", "E-0", "F-0", "F#0", "G-0", "G#0", "A-0", "A#0", "B-0",
-  "C-1", "C#1", "D-1", "D#1", "E-1", "F-1", "F#1", "G-1", "G#1", "A-1", "A#1", "B-1",
-  "C-2", "C#2", "D-2", "D#2", "E-2", "F-2", "F#2", "G-2", "G#2", "A-2", "A#2", "B-2",
-  "C-3", "C#3", "D-3", "D#3", "E-3", "F-3", "F#3", "G-3", "G#3", "A-3", "A#3", "B-3",
-  "C-4", "C#4", "D-4", "D#4", "E-4", "F-4", "F#4", "G-4", "G#4", "A-4", "A#4", "B-4",
-  "C-5", "C#5", "D-5", "D#5", "E-5", "F-5", "F#5", "G-5", "G#5", "A-5", "A#5", "B-5",
-  "C-6", "C#6", "D-6", "D#6", "E-6", "F-6", "F#6", "G-6", "G#6", "A-6", "A#6", "B-6",
-  "C-7", "C#7", "D-7", "D#7", "E-7", "F-7", "F#7", "G-7", "G#7", "A-7", "A#7", "B-7",
-  "C-8", "C#8", "D-8", "D#8", "E-8", "F-8", "F#8", "G-8", "G#8", "A-8", "A#8", "B-8",
-  "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "B-9"
+  EDO31_NOTE_NAMES
 };
 
 const char* noteNamesG[180]={
-  "c_5", "c+5", "d_5", "d+5", "e_5", "f_5", "f+5", "g_5", "g+5", "a_5", "a+5", "h_5",
-  "c_4", "c+4", "d_4", "d+4", "e_4", "f_4", "f+4", "g_4", "g+4", "a_4", "a+4", "h_4",
-  "c_3", "c+3", "d_3", "d+3", "e_3", "f_3", "f+3", "g_3", "g+3", "a_3", "a+3", "h_3",
-  "c_2", "c+2", "d_2", "d+2", "e_2", "f_2", "f+2", "g_2", "g+2", "a_2", "a+2", "h_2",
-  "c_1", "c+1", "d_1", "d+1", "e_1", "f_1", "f+1", "g_1", "g+1", "a_1", "a+1", "h_1",
-  "C-0", "C#0", "D-0", "D#0", "E-0", "F-0", "F#0", "G-0", "G#0", "A-0", "A#0", "H-0",
-  "C-1", "C#1", "D-1", "D#1", "E-1", "F-1", "F#1", "G-1", "G#1", "A-1", "A#1", "H-1",
-  "C-2", "C#2", "D-2", "D#2", "E-2", "F-2", "F#2", "G-2", "G#2", "A-2", "A#2", "H-2",
-  "C-3", "C#3", "D-3", "D#3", "E-3", "F-3", "F#3", "G-3", "G#3", "A-3", "A#3", "H-3",
-  "C-4", "C#4", "D-4", "D#4", "E-4", "F-4", "F#4", "G-4", "G#4", "A-4", "A#4", "H-4",
-  "C-5", "C#5", "D-5", "D#5", "E-5", "F-5", "F#5", "G-5", "G#5", "A-5", "A#5", "H-5",
-  "C-6", "C#6", "D-6", "D#6", "E-6", "F-6", "F#6", "G-6", "G#6", "A-6", "A#6", "H-6",
-  "C-7", "C#7", "D-7", "D#7", "E-7", "F-7", "F#7", "G-7", "G#7", "A-7", "A#7", "H-7",
-  "C-8", "C#8", "D-8", "D#8", "E-8", "F-8", "F#8", "G-8", "G#8", "A-8", "A#8", "H-8",
-  "C-9", "C#9", "D-9", "D#9", "E-9", "F-9", "F#9", "G-9", "G#9", "A-9", "A#9", "H-9"
+  EDO31_NOTE_NAMES
 };
 
 const char* noteNamesF[180]={
-  "c_5", "dd5", "d_5", "ed5", "e_5", "f_5", "gd5", "g_5", "ad5", "a_5", "bd5", "b_5",
-  "c_4", "dd4", "d_4", "ed4", "e_4", "f_4", "gd4", "g_4", "ad4", "a_4", "bd4", "b_4",
-  "c_3", "dd3", "d_3", "ed3", "e_3", "f_3", "gd3", "g_3", "ad3", "a_3", "bd3", "b_3",
-  "c_2", "dd2", "d_2", "ed2", "e_2", "f_2", "gd2", "g_2", "ad2", "a_2", "bd2", "b_2",
-  "c_1", "dd1", "d_1", "ed1", "e_1", "f_1", "gd1", "g_1", "ad1", "a_1", "bd1", "b_1",
-  "C-0", "Db0", "D-0", "Eb0", "E-0", "F-0", "Gb0", "G-0", "Ab0", "A-0", "Bb0", "B-0",
-  "C-1", "Db1", "D-1", "Eb1", "E-1", "F-1", "Gb1", "G-1", "Ab1", "A-1", "Bb1", "B-1",
-  "C-2", "Db2", "D-2", "Eb2", "E-2", "F-2", "Gb2", "G-2", "Ab2", "A-2", "Bb2", "B-2",
-  "C-3", "Db3", "D-3", "Eb3", "E-3", "F-3", "Gb3", "G-3", "Ab3", "A-3", "Bb3", "B-3",
-  "C-4", "Db4", "D-4", "Eb4", "E-4", "F-4", "Gb4", "G-4", "Ab4", "A-4", "Bb4", "B-4",
-  "C-5", "Db5", "D-5", "Eb5", "E-5", "F-5", "Gb5", "G-5", "Ab5", "A-5", "Bb5", "B-5",
-  "C-6", "Db6", "D-6", "Eb6", "E-6", "F-6", "Gb6", "G-6", "Ab6", "A-6", "Bb6", "B-6",
-  "C-7", "Db7", "D-7", "Eb7", "E-7", "F-7", "Gb7", "G-7", "Ab7", "A-7", "Bb7", "B-7",
-  "C-8", "Db8", "D-8", "Eb8", "E-8", "F-8", "Gb8", "G-8", "Ab8", "A-8", "Bb8", "B-8",
-  "C-9", "Db9", "D-9", "Eb9", "E-9", "F-9", "Gb9", "G-9", "Ab9", "A-9", "Bb9", "B-9"
+  EDO31_NOTE_NAMES
 };
 
 const char* noteNamesGF[180]={
-  "c_5", "dd5", "d_5", "ed5", "e_5", "f_5", "gd5", "g_5", "ad5", "a_5", "b_5", "h_5",
-  "c_4", "dd4", "d_4", "ed4", "e_4", "f_4", "gd4", "g_4", "ad4", "a_4", "b_4", "h_4",
-  "c_3", "dd3", "d_3", "ed3", "e_3", "f_3", "gd3", "g_3", "ad3", "a_3", "b_3", "h_3",
-  "c_2", "dd2", "d_2", "ed2", "e_2", "f_2", "gd2", "g_2", "ad2", "a_2", "b_2", "h_2",
-  "c_1", "dd1", "d_1", "ed1", "e_1", "f_1", "gd1", "g_1", "ad1", "a_1", "b_1", "h_1",
-  "C-0", "Db0", "D-0", "Eb0", "E-0", "F-0", "Gb0", "G-0", "Ab0", "A-0", "B-0", "H-0",
-  "C-1", "Db1", "D-1", "Eb1", "E-1", "F-1", "Gb1", "G-1", "Ab1", "A-1", "B-1", "H-1",
-  "C-2", "Db2", "D-2", "Eb2", "E-2", "F-2", "Gb2", "G-2", "Ab2", "A-2", "B-2", "H-2",
-  "C-3", "Db3", "D-3", "Eb3", "E-3", "F-3", "Gb3", "G-3", "Ab3", "A-3", "B-3", "H-3",
-  "C-4", "Db4", "D-4", "Eb4", "E-4", "F-4", "Gb4", "G-4", "Ab4", "A-4", "B-4", "H-4",
-  "C-5", "Db5", "D-5", "Eb5", "E-5", "F-5", "Gb5", "G-5", "Ab5", "A-5", "B-5", "H-5",
-  "C-6", "Db6", "D-6", "Eb6", "E-6", "F-6", "Gb6", "G-6", "Ab6", "A-6", "B-6", "H-6",
-  "C-7", "Db7", "D-7", "Eb7", "E-7", "F-7", "Gb7", "G-7", "Ab7", "A-7", "B-7", "H-7",
-  "C-8", "Db8", "D-8", "Eb8", "E-8", "F-8", "Gb8", "G-8", "Ab8", "A-8", "B-8", "H-8",
-  "C-9", "Db9", "D-9", "Eb9", "E-9", "F-9", "Gb9", "G-9", "Ab9", "A-9", "B-9", "H-9"
+  EDO31_NOTE_NAMES
 };
 
 const char* pitchLabel[11]={
@@ -682,6 +666,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_REF_PLAYER", _N("Reference Music Player"), 0),
   D("MULTI_INS_SETUP", _N("Multi-Instrument Setup"), 0),
   D("WINDOW_BACKUPS_MANAGER", _N("Backup Management"), 0),
+  D("WINDOW_TERPSTRA", _N("Terpstra Keyboard"), 0),
 
   D("COLLAPSE_WINDOW", _N("Collapse/expand current window"), 0),
   D("CLOSE_WINDOW", _N("Close current window"), FURKMOD_SHIFT|SDLK_ESCAPE),
