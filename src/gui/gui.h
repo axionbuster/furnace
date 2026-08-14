@@ -2500,6 +2500,7 @@ class FurnaceGUI {
 
   // do not set curIns directly! use setCurIns() instead.
   int curIns, curWave, curSample;
+  int tuningReferenceNote;
   int curOctave, curOrder, playOrder, prevIns, oldRow, editStep, editStepCoarse, soloChan, orderEditMode, orderCursor;
   int isClipping, newSongCategory, latchTarget, undoOrder;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragSourceOrder, dragDestinationX, dragDestinationXFine, dragDestinationY, dragDestinationOrder, oldBeat, oldBar;

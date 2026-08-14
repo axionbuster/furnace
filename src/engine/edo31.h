@@ -32,9 +32,12 @@
 #ifndef _EDO31_H
 #define _EDO31_H
 
+#include <cmath>
+
 #define DIV_EDO31_STEPS 31
 #define DIV_EDO31_MIDDLE_C 62
 #define DIV_EDO31_A4 85
+#define DIV_EDO31_A_STEP (DIV_EDO31_A4%DIV_EDO31_STEPS)
 // one octave in 8.7 fixed-point units (31*128)
 #define DIV_EDO31_OCTAVE_LINEAR 3968
 
@@ -64,6 +67,41 @@ static const unsigned char edo31Class[31]={
   DIV_EDO31_DFLAT,   DIV_EDO31_SHARP,   DIV_EDO31_FLAT,    DIV_EDO31_DSHARP,
   DIV_EDO31_NATURAL, DIV_EDO31_FLAT,    DIV_EDO31_SHARP
 };
+
+// Conventional 12-EDO semitone for each spelling above middle C. B# reaches
+// the C above rather than wrapping to zero, matching scientific pitch names.
+static const unsigned char edo31TwelveEDOSemitones[31]={
+  0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6,
+  6, 7, 7, 7, 8, 8, 9, 9, 9, 10, 10, 11, 11, 11, 12
+};
+
+// Frequency of a reference spelling in octave 4 when A-4 is the tuning.
+static inline double edo31ReferenceFrequency(double tuning, int step) {
+  return tuning*std::pow(2.0,(double)(step-DIV_EDO31_A_STEP)/(double)DIV_EDO31_STEPS);
+}
+
+// Conventional 12-EDO frequency of a reference spelling at A-4 = 440 Hz.
+static inline double edo31StandardReferenceFrequency(int step) {
+  return 440.0*std::pow(
+    2.0,
+    (double)((int)edo31TwelveEDOSemitones[step]-9)/12.0
+  );
+}
+
+// Convert a spelled reference frequency back to Furnace's stored A-4 anchor.
+static inline double edo31TuningFromReferenceFrequency(double frequency, int step) {
+  return frequency*std::pow(2.0,(double)(DIV_EDO31_A_STEP-step)/(double)DIV_EDO31_STEPS);
+}
+
+// Choose another exact spelling while preserving the current concert-pitch
+// ratio. At standard pitch this pins the new spelling to its 12-EDO frequency.
+static inline double edo31RetuneForReference(double tuning, int oldStep, int newStep) {
+  double ratio=edo31ReferenceFrequency(tuning,oldStep)/edo31StandardReferenceFrequency(oldStep);
+  return edo31TuningFromReferenceFrequency(
+    edo31StandardReferenceFrequency(newStep)*ratio,
+    newStep
+  );
+}
 
 // octave digit shown for a slot (2..7, or 8 for the top Cb edge case if it
 // ever comes into range; slot 179 is Bbb-7 so it does not today)

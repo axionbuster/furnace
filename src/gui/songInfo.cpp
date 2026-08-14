@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "guiConst.h"
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
@@ -97,17 +98,45 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text(_("Tuning (A-4)"));
+      ImGui::Text(_("Reference note"));
+      ImGui::SetItemTooltip(_("choose which 31-EDO spelling is pinned to an exact frequency"));
       ImGui::TableNextColumn();
-      float tune=e->song.tuning;
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputFloat("##Tuning",&tune,1.0f,10.0f,"%g")) { MARK_MODIFIED
+      if (ImGui::BeginCombo("##TuningReferenceNote",baseNoteNames31[tuningReferenceNote])) {
+        for (int i=0; i<DIV_EDO31_STEPS; i++) {
+          if (ImGui::Selectable(baseNoteNames31[i],tuningReferenceNote==i)) {
+            if (tuningReferenceNote!=i) {
+              e->song.tuning=(float)edo31RetuneForReference(e->song.tuning,tuningReferenceNote,i);
+              tuningReferenceNote=i;
+              MARK_MODIFIED;
+              e->notifyPitchTable();
+            }
+          }
+          if (tuningReferenceNote==i) ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+      }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text(_("Sounds at"));
+      ImGui::SetItemTooltip(_("the selected reference note sounds at exactly this frequency"));
+      ImGui::TableNextColumn();
+      float referenceFrequency=(float)edo31ReferenceFrequency(e->song.tuning,tuningReferenceNote);
+      float hzWidth=ImGui::CalcTextSize(_("Hz")).x;
+      ImGui::SetNextItemWidth(MAX(1.0f,avail-hzWidth-ImGui::GetStyle().ItemSpacing.x));
+      if (ImGui::InputFloat("##TuningReferenceFrequency",&referenceFrequency,1.0f,10.0f,"%g")) { MARK_MODIFIED
+        float tune=(float)edo31TuningFromReferenceFrequency(referenceFrequency,tuningReferenceNote);
         if (tune<220.0f) tune=220.0f;
         if (tune>880.0f) tune=880.0f;
         e->song.tuning=tune;
         e->notifyPitchTable();
       }
+      ImGui::SameLine();
+      ImGui::AlignTextToFramePadding();
+      ImGui::TextUnformatted(_("Hz"));
       ImGui::EndTable();
     }
   }

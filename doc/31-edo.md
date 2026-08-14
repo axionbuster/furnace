@@ -22,6 +22,8 @@ frequency for any slot follows directly from the A-4 anchor:
 
 adjacent slots are in a fixed ratio of 2^(1/31) (about 1.0231), and slots 31 apart are exactly one octave. the on-disk `.fur` pattern format is unchanged — note bytes still range 0..179 with the same sentinel values (`180`=note off, `181`=note release, etc.) — so files remain byte-compatible with stock Furnace at the file-format level. only the *interpretation* of the pitch differs.
 
+the song information window can express this same anchor using any of the 31 spellings. the selected reference note is an interface preference; the song still stores the equivalent A-4 frequency, so changing or reopening the selector does not require a `.fur` format change. choosing a new spelling preserves the current concert-pitch ratio and pins that spelling to its conventional 12-EDO frequency. for example, A at standard pitch remains 440 Hz, while choosing C pins C-4 to about 261.62557 Hz and makes A-4 about 437.54731 Hz.
+
 
 ## canonical spelling
 

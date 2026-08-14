@@ -9102,6 +9102,8 @@ void FurnaceGUI::syncState() {
   terpstraPanX=e->getConfFloat("terpstraPanX",terpstraPanX);
   terpstraPanY=e->getConfFloat("terpstraPanY",terpstraPanY);
   terpstraZoom=e->getConfFloat("terpstraZoom",terpstraZoom);
+  tuningReferenceNote=e->getConfInt("tuningReferenceNote",DIV_EDO31_A_STEP);
+  if (tuningReferenceNote<0 || tuningReferenceNote>=DIV_EDO31_STEPS) tuningReferenceNote=DIV_EDO31_A_STEP;
 
   chanOscCols=e->getConfInt("chanOscCols",3);
   chanOscAutoCols=e->getConfBool("chanOscAutoColsType",0);
@@ -9281,6 +9283,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("terpstraPanX",terpstraPanX);
   conf.set("terpstraPanY",terpstraPanY);
   conf.set("terpstraZoom",terpstraZoom);
+  conf.set("tuningReferenceNote",tuningReferenceNote);
 
   // commit per-chan osc state
   conf.set("chanOscCols",chanOscCols);
@@ -9594,6 +9597,7 @@ FurnaceGUI::FurnaceGUI():
   curIns(0),
   curWave(0),
   curSample(0),
+  tuningReferenceNote(DIV_EDO31_A_STEP),
   curOctave(4),
   curOrder(0),
   playOrder(0),
