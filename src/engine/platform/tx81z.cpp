@@ -420,10 +420,10 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         immWrite(i+0x28,(chan[i].freq>>6));
         immWrite(i+0x30,((chan[i].freq&63)<<2)|(chan[i].chVolL==chan[i].chVolR));
       } else {
-        chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2;
         if (!parent->song.compatFlags.oldArpStrategy) {
           if (chan[i].fixedArp) {
-            chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
+            chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch+chan[i].pitch2;
           } else {
             chan[i].freq+=chan[i].arpOff<<7;
           }
@@ -432,7 +432,9 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         // pitch into the 12-EDO 8.7 pitch of the same frequency (A-4 is slot 85
         // here and slot 117 there), then run the usual pipeline in 12-space.
         int freq12=(117<<7)+(int)round((double)(chan[i].freq-(DIV_EDO31_A4<<7))*12.0/(double)DIV_EDO31_STEPS);
-        freq12+=OFFSET_LINEAR;
+        // OPZ shares OPM's historical one-semitone hardware bias. Keep that
+        // bias in 12-EDO register space instead of scaling it by 12/31.
+        freq12+=OFFSET_LINEAR-128;
         if (freq12<0) freq12=0;
         if (freq12>=(95<<7)) freq12=(95<<7)-1;
         immWrite(i+0x28,hScale(freq12>>7));
