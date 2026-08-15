@@ -1423,6 +1423,15 @@ void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
 }
 
 void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
+  if (scancode>=0 && scancode<SDL_NUM_SCANCODES && terpstraPreviewNote[scancode]>=0) {
+    int num=terpstraPreviewNote[scancode];
+    terpstraPreviewNote[scancode]=-1;
+    e->synchronized([this,num]() {
+      e->autoNoteOff(-1,num);
+      failedNoteOn=false;
+    });
+    return;
+  }
   auto it=noteKeys.find(scancode);
   if (it!=noteKeys.cend()) {
     int key=it->second;
@@ -4277,10 +4286,17 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             int key=it->second;
             int num=31*(curOctave-2)+key;
 
+            if (curWindowThreadSafe==GUI_WINDOW_TERPSTRA) {
+              num+=5*terpstraAnchorQ+2*terpstraAnchorR;
+            }
+
             if (num<0) num=0; // C-2
             if (num>179) num=179; // Bbb-7
 
             if (key!=100 && key!=101 && key!=102 && key!=103) {
+              if (curWindowThreadSafe==GUI_WINDOW_TERPSTRA && ev->key.keysym.scancode>=0 && ev->key.keysym.scancode<SDL_NUM_SCANCODES) {
+                terpstraPreviewNote[ev->key.keysym.scancode]=num;
+              }
               previewNote(cursor.xCoarse,num);
             }
           }
@@ -9102,6 +9118,10 @@ void FurnaceGUI::syncState() {
   terpstraPanX=e->getConfFloat("terpstraPanX",terpstraPanX);
   terpstraPanY=e->getConfFloat("terpstraPanY",terpstraPanY);
   terpstraZoom=e->getConfFloat("terpstraZoom",terpstraZoom);
+  terpstraAnchorQ=e->getConfInt("terpstraAnchorQ",terpstraAnchorQ);
+  terpstraAnchorR=e->getConfInt("terpstraAnchorR",terpstraAnchorR);
+  terpstraAnchorQ=CLAMP(terpstraAnchorQ,-128,128);
+  terpstraAnchorR=CLAMP(terpstraAnchorR,-128,128);
   tuningReferenceNote=e->getConfInt("tuningReferenceNote",DIV_EDO31_A_STEP);
   if (tuningReferenceNote<0 || tuningReferenceNote>=DIV_EDO31_STEPS) tuningReferenceNote=DIV_EDO31_A_STEP;
 
@@ -9283,6 +9303,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("terpstraPanX",terpstraPanX);
   conf.set("terpstraPanY",terpstraPanY);
   conf.set("terpstraZoom",terpstraZoom);
+  conf.set("terpstraAnchorQ",terpstraAnchorQ);
+  conf.set("terpstraAnchorR",terpstraAnchorR);
   conf.set("tuningReferenceNote",tuningReferenceNote);
 
   // commit per-chan osc state
@@ -10013,9 +10035,15 @@ FurnaceGUI::FurnaceGUI():
   pianoLabelsMode(PIANO_LABELS_OCTAVE),
   pianoKeyColorMode(PIANO_KEY_COLOR_SINGLE),
 #endif
+  terpstraAnchorQ(0),
+  terpstraAnchorR(0),
   terpstraPanX(0.0f),
   terpstraPanY(0.0f),
   terpstraZoom(1.0f),
+  terpstraTouchGesture(false),
+  terpstraTouchX(0.0f),
+  terpstraTouchY(0.0f),
+  terpstraTouchDistance(0.0f),
   hasACED(false),
   waveGenBaseShape(0),
   waveInterpolation(0),
@@ -10160,6 +10188,7 @@ FurnaceGUI::FurnaceGUI():
   memset(pianoKeyHit,0,sizeof(pianoKeyState)*180); // posiblly repace with a for loop
   memset(pianoKeyPressed,0,sizeof(bool)*180);
   memset(terpstraKeyPressed,0,sizeof(bool)*180);
+  for (int i=0; i<SDL_NUM_SCANCODES; i++) terpstraPreviewNote[i]=-1;
 
   memset(queryReplaceEffectMode,0,sizeof(int)*8);
   memset(queryReplaceEffectValMode,0,sizeof(int)*8);

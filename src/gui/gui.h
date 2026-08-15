@@ -2995,7 +2995,11 @@ class FurnaceGUI {
 
   // Terpstra keyboard
   bool terpstraKeyPressed[180];
+  int terpstraPreviewNote[SDL_NUM_SCANCODES];
+  int terpstraAnchorQ, terpstraAnchorR;
   float terpstraPanX, terpstraPanY, terpstraZoom;
+  bool terpstraTouchGesture;
+  float terpstraTouchX, terpstraTouchY, terpstraTouchDistance;
 
   // effect sorting / searching
   bool effectsShow[10];

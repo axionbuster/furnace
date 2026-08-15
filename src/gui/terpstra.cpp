@@ -21,6 +21,8 @@
 #include "gui.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "IconsFontAwesome4.h"
+#include "furIcons.h"
 
 // fills per accidental class, indexed by DivEDO31Accidental
 static const ImU32 terpstraFill[5]={
@@ -43,6 +45,7 @@ static const ImU32 terpstraTextColor[5]={
 };
 
 #define TERPSTRA_PRESSED IM_COL32(0x3f,0xd9,0x42,0xff)
+#define TERPSTRA_OCTAVE_ECHO IM_COL32(0x55,0xff,0x55,0x4d)
 #define TERPSTRA_OUT_OF_RANGE IM_COL32(0x40,0x40,0x40,0x40)
 #define TERPSTRA_OUTLINE IM_COL32(0x10,0x10,0x10,0xff)
 #define TERPSTRA_BADGE IM_COL32(0x1c,0x1c,0x1c,0xd0)
@@ -54,7 +57,7 @@ static const ImU32 terpstraTextColor[5]={
 // the raw pointy-top layout; the whole lattice is rotated to lay it flat
 #define TERPSTRA_ROT_COS 0.96076892f
 #define TERPSTRA_ROT_SIN 0.27735010f
-#define TERPSTRA_OCTAVES_VISIBLE 2.5f
+#define TERPSTRA_OCTAVES_VISIBLE 2.65f
 #define TERPSTRA_MIN_ZOOM 0.3f
 #define TERPSTRA_MAX_ZOOM 5.0f
 
@@ -103,6 +106,11 @@ void FurnaceGUI::drawTerpstra() {
     releaseHeld();
     return;
   }
+  ImGui::SetNextWindowSize(ImVec2(860.0f*dpiScale,480.0f*dpiScale),ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSizeConstraints(
+    ImVec2(MIN(480.0f*dpiScale,canvasW),MIN(280.0f*dpiScale,canvasH)),
+    ImVec2(canvasW,canvasH)
+  );
   if (ImGui::Begin("Terpstra Keyboard",&terpstraOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse,_("Terpstra Keyboard"))) {
     bool oldTerpstraKeyPressed[180];
     memcpy(oldTerpstraKeyPressed,terpstraKeyPressed,180*sizeof(bool));
@@ -118,6 +126,88 @@ void FurnaceGUI::drawTerpstra() {
       if (keyName[0]==0) continue;
       keyBadge[i.second]=keyName[0];
     }
+
+    ImGuiIO& io=ImGui::GetIO();
+    auto tooltip=[](const char* description) {
+      if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s",description);
+    };
+    auto moveGuide=[this](int q, int r) {
+      terpstraAnchorQ=CLAMP(terpstraAnchorQ+q,-128,128);
+      terpstraAnchorR=CLAMP(terpstraAnchorR+r,-128,128);
+    };
+    auto zoomCentered=[this](float factor) {
+      float oldZoom=terpstraZoom;
+      terpstraZoom=CLAMP(terpstraZoom*factor,TERPSTRA_MIN_ZOOM,TERPSTRA_MAX_ZOOM);
+      float ratio=terpstraZoom/oldZoom;
+      terpstraPanX*=ratio;
+      terpstraPanY*=ratio;
+    };
+
+    // Experimental pattern and keyboard-guide controls. Keeping this a single
+    // compact row leaves the lattice layout itself unchanged.
+    ImGui::Text("%s %d",_("Step"),editStep);
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!edit);
+    if (ImGui::SmallButton(ICON_FA_ARROW_UP "##TerpstraStepUp")) moveCursor(0,-editStep,false);
+    tooltip(_("Move the pattern cursor up by Edit Step"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_ARROW_DOWN "##TerpstraStepDown")) moveCursor(0,editStep,false);
+    tooltip(_("Move the pattern cursor down by Edit Step"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_ANGLE_DOUBLE_UP "##TerpstraPatternTop")) moveCursor(0,-cursor.y,false);
+    tooltip(_("Move to the top of the pattern"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_CROSSHAIRS "##TerpstraPatternMiddle")) moveCursor(0,((e->curSubSong->patLen-1)/2)-cursor.y,false);
+    tooltip(_("Move to the middle of the pattern"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_ANGLE_DOUBLE_DOWN "##TerpstraPatternBottom")) moveCursor(0,(e->curSubSong->patLen-1)-cursor.y,false);
+    tooltip(_("Move to the bottom of the pattern"));
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("|");
+    ImGui::SameLine();
+    ImGui::TextUnformatted(_("Guide"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_ARROW_LEFT "##TerpstraGuideLeft")) moveGuide(-1,0);
+    tooltip(_("Move the physical keyboard guide left (5 EDO steps)"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_ARROW_RIGHT "##TerpstraGuideRight")) moveGuide(1,0);
+    tooltip(_("Move the physical keyboard guide right (5 EDO steps)"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_ARROW_UP "##TerpstraGuideUp")) moveGuide(0,1);
+    tooltip(_("Move the physical keyboard guide up (2 EDO steps)"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_ARROW_DOWN "##TerpstraGuideDown")) moveGuide(0,-1);
+    tooltip(_("Move the physical keyboard guide down (2 EDO steps)"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(_("Oct-##TerpstraGuideOctaveDown"))) moveGuide(-7,2);
+    tooltip(_("Move the guide down one octave"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(_("Oct+##TerpstraGuideOctaveUp"))) moveGuide(7,-2);
+    tooltip(_("Move the guide up one octave"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(_("5th-##TerpstraGuideFifthDown"))) moveGuide(-4,1);
+    tooltip(_("Move the guide down one fifth"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(_("5th+##TerpstraGuideFifthUp"))) moveGuide(4,-1);
+    tooltip(_("Move the guide up one fifth"));
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("|");
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_MINUS "##TerpstraZoomOut")) zoomCentered(1.0f/1.15f);
+    tooltip(_("Zoom out"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_PLUS "##TerpstraZoomIn")) zoomCentered(1.15f);
+    tooltip(_("Zoom in"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_HOME "##TerpstraViewHome")) {
+      terpstraPanX=0.0f;
+      terpstraPanY=0.0f;
+      terpstraZoom=1.0f;
+    }
+    tooltip(_("Reset zoom and pan"));
 
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
@@ -139,18 +229,97 @@ void FurnaceGUI::drawTerpstra() {
         ImGui::InhibitInertialScroll();
       }
 
-      ImGuiIO& io=ImGui::GetIO();
+      bool windowFocused=ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+      if (windowFocused) {
+        const float keyboardPan=36.0f*dpiScale;
+        if (io.KeyCtrl) {
+          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) terpstraPanX+=keyboardPan;
+          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) terpstraPanX-=keyboardPan;
+          if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) terpstraPanY+=keyboardPan;
+          if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) terpstraPanY-=keyboardPan;
+          if (ImGui::IsKeyPressed(ImGuiKey_Minus) || ImGui::IsKeyPressed(ImGuiKey_KeypadSubtract)) zoomCentered(1.0f/1.15f);
+          if (ImGui::IsKeyPressed(ImGuiKey_Equal) || ImGui::IsKeyPressed(ImGuiKey_KeypadAdd)) zoomCentered(1.15f);
+          if (ImGui::IsKeyPressed(ImGuiKey_0) || ImGui::IsKeyPressed(ImGuiKey_Keypad0)) {
+            terpstraPanX=0.0f;
+            terpstraPanY=0.0f;
+            terpstraZoom=1.0f;
+          }
+        } else if (io.KeyShift) {
+          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-7,2);
+          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(7,-2);
+        } else if (io.KeyAlt) {
+          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-4,1);
+          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(4,-1);
+        } else {
+          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-1,0);
+          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(1,0);
+          if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) moveGuide(0,1);
+          if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) moveGuide(0,-1);
+        }
+      }
+
+      auto zoomAt=[this,&rect](const ImVec2& anchor, float factor) {
+        float oldZoom=terpstraZoom;
+        terpstraZoom=CLAMP(terpstraZoom*factor,TERPSTRA_MIN_ZOOM,TERPSTRA_MAX_ZOOM);
+        float ratio=terpstraZoom/oldZoom;
+        ImVec2 baseCenter=ImVec2((rect.Min.x+rect.Max.x)*0.5f,(rect.Min.y+rect.Max.y)*0.5f);
+        terpstraPanX=anchor.x-baseCenter.x-(anchor.x-baseCenter.x-terpstraPanX)*ratio;
+        terpstraPanY=anchor.y-baseCenter.y-(anchor.y-baseCenter.y-terpstraPanY)*ratio;
+      };
+
       if (canInput) {
-        if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
+        if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) || ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
           terpstraPanX+=io.MouseDelta.x;
           terpstraPanY+=io.MouseDelta.y;
         }
-        if (io.KeyCtrl && io.MouseWheel!=0.0f) {
-          terpstraZoom*=pow(2.0f,io.MouseWheel*0.25f);
-          if (terpstraZoom<TERPSTRA_MIN_ZOOM) terpstraZoom=TERPSTRA_MIN_ZOOM;
-          if (terpstraZoom>TERPSTRA_MAX_ZOOM) terpstraZoom=TERPSTRA_MAX_ZOOM;
+        if ((io.KeyCtrl || io.KeyAlt) && (io.MouseWheel!=0.0f || io.MouseWheelH!=0.0f)) {
+          float wheel=(fabs(io.MouseWheel)>=fabs(io.MouseWheelH))?io.MouseWheel:io.MouseWheelH;
+          zoomAt(io.MousePos,pow(2.0f,wheel*0.18f));
+        } else {
+          terpstraPanX-=io.MouseWheelH*36.0f*dpiScale;
+          terpstraPanY+=io.MouseWheel*36.0f*dpiScale;
         }
       }
+
+      // Direct two-touch input pans and pinches. Desktop trackpads arrive as
+      // precise wheel events above; touch screens use the same viewport math.
+      TouchPoint* gesturePoints[2]={NULL,NULL};
+      int gesturePointCount=0;
+      for (TouchPoint& point: activePoints) {
+        if (point.id<0 || !rect.Contains(ImVec2(point.x,point.y))) continue;
+        if (gesturePointCount<2) gesturePoints[gesturePointCount]=&point;
+        gesturePointCount++;
+      }
+      if (gesturePointCount>=2) {
+        ImVec2 touchCenter=ImVec2(
+          (gesturePoints[0]->x+gesturePoints[1]->x)*0.5f,
+          (gesturePoints[0]->y+gesturePoints[1]->y)*0.5f
+        );
+        float dx=gesturePoints[1]->x-gesturePoints[0]->x;
+        float dy=gesturePoints[1]->y-gesturePoints[0]->y;
+        float distance=sqrt(dx*dx+dy*dy);
+        if (terpstraTouchDistance>1.0f && distance>1.0f) {
+          terpstraPanX+=touchCenter.x-terpstraTouchX;
+          terpstraPanY+=touchCenter.y-terpstraTouchY;
+          zoomAt(touchCenter,CLAMP(distance/terpstraTouchDistance,0.5f,2.0f));
+        }
+        terpstraTouchGesture=true;
+        terpstraTouchX=touchCenter.x;
+        terpstraTouchY=touchCenter.y;
+        terpstraTouchDistance=distance;
+      } else {
+        terpstraTouchDistance=0.0f;
+        if (gesturePointCount==0) terpstraTouchGesture=false;
+      }
+
+      if (!isfinite(terpstraZoom)) terpstraZoom=1.0f;
+      if (!isfinite(terpstraPanX)) terpstraPanX=0.0f;
+      if (!isfinite(terpstraPanY)) terpstraPanY=0.0f;
+      terpstraZoom=CLAMP(terpstraZoom,TERPSTRA_MIN_ZOOM,TERPSTRA_MAX_ZOOM);
+      float maxPanX=size.x*(1.5f+terpstraZoom*0.65f);
+      float maxPanY=size.y*(1.5f+terpstraZoom*0.65f);
+      terpstraPanX=CLAMP(terpstraPanX,-maxPanX,maxPanX);
+      terpstraPanY=CLAMP(terpstraPanY,-maxPanY,maxPanY);
 
       float hexSize=(size.x/(TERPSTRA_OCTAVES_VISIBLE*TERPSTRA_OCTAVE_LEN))*terpstraZoom;
       if (hexSize<2.0f) hexSize=2.0f;
@@ -164,15 +333,15 @@ void FurnaceGUI::drawTerpstra() {
         float rawY=hexSize*1.5f*(float)r;
         return ImVec2(
           center.x+rawX*TERPSTRA_ROT_COS-rawY*TERPSTRA_ROT_SIN,
-          center.y+rawX*TERPSTRA_ROT_SIN+rawY*TERPSTRA_ROT_COS
+          center.y-rawX*TERPSTRA_ROT_SIN-rawY*TERPSTRA_ROT_COS
         );
       };
 
       auto hexCoord=[&](float x, float y, float& q, float& r) {
         float dx=x-center.x;
         float dy=y-center.y;
-        float rawX=dx*TERPSTRA_ROT_COS+dy*TERPSTRA_ROT_SIN;
-        float rawY=dy*TERPSTRA_ROT_COS-dx*TERPSTRA_ROT_SIN;
+        float rawX=dx*TERPSTRA_ROT_COS-dy*TERPSTRA_ROT_SIN;
+        float rawY=-dy*TERPSTRA_ROT_COS-dx*TERPSTRA_ROT_SIN;
         r=rawY/(1.5f*hexSize);
         q=rawX/(TERPSTRA_SQRT3*hexSize)-r*0.5f;
       };
@@ -180,6 +349,7 @@ void FurnaceGUI::drawTerpstra() {
       // evaluate input
       if (canInput) for (TouchPoint& i: activePoints) {
         if (!rect.Contains(ImVec2(i.x,i.y))) continue;
+        if (i.id>=0 && terpstraTouchGesture) continue;
         float fq=0.0f;
         float fr=0.0f;
         int q=0;
@@ -192,6 +362,18 @@ void FurnaceGUI::drawTerpstra() {
         terpstraKeyPressed[note]=true;
       }
 
+      bool physicalKeyPressed[180];
+      bool pitchClassPressed[31];
+      memset(physicalKeyPressed,0,sizeof(physicalKeyPressed));
+      memset(pitchClassPressed,0,sizeof(pitchClassPressed));
+      for (int i=0; i<SDL_NUM_SCANCODES; i++) {
+        int note=terpstraPreviewNote[i];
+        if (note>=0 && note<180) physicalKeyPressed[note]=true;
+      }
+      for (int note=0; note<180; note++) {
+        if (terpstraKeyPressed[note] || physicalKeyPressed[note]) pitchClassPressed[note%31]=true;
+      }
+
       // hexagon outline, rotated with the lattice
       ImVec2 vertex[6];
       for (int i=0; i<6; i++) {
@@ -200,7 +382,7 @@ void FurnaceGUI::drawTerpstra() {
         float vy=hexSize*sin(angle)*0.95f;
         vertex[i]=ImVec2(
           vx*TERPSTRA_ROT_COS-vy*TERPSTRA_ROT_SIN,
-          vx*TERPSTRA_ROT_SIN+vy*TERPSTRA_ROT_COS
+          -vx*TERPSTRA_ROT_SIN-vy*TERPSTRA_ROT_COS
         );
       }
 
@@ -235,20 +417,36 @@ void FurnaceGUI::drawTerpstra() {
           }
 
           ImU32 fill=TERPSTRA_OUT_OF_RANGE;
+          bool pressed=false;
+          bool octaveEcho=false;
           if (inRange) {
-            fill=terpstraKeyPressed[note]?TERPSTRA_PRESSED:terpstraFill[edo31Class[note%31]];
+            pressed=terpstraKeyPressed[note] || physicalKeyPressed[note];
+            octaveEcho=!pressed && pitchClassPressed[note%31];
+            fill=pressed?TERPSTRA_PRESSED:terpstraFill[edo31Class[note%31]];
           }
           dl->AddConvexPolyFilled(points,6,fill);
+          if (octaveEcho) dl->AddConvexPolyFilled(points,6,TERPSTRA_OCTAVE_ECHO);
           dl->AddPolyline(points,6,TERPSTRA_OUTLINE,ImDrawFlags_Closed,dpiScale);
 
           if (!inRange) continue;
           if (!labels) continue;
 
-          ImU32 textColor=terpstraKeyPressed[note]?TERPSTRA_TEXT_DARK:terpstraTextColor[edo31Class[note%31]];
+          ImU32 textColor=pressed?TERPSTRA_TEXT_DARK:terpstraTextColor[edo31Class[note%31]];
 
           const char* stepName=edo31Names[note%31];
-          ImVec2 stepSize=mainFont->CalcTextSizeA(nameSize,FLT_MAX,0.0f,stepName);
-          dl->AddText(mainFont,nameSize,ImVec2(pos.x-stepSize.x*0.5f,pos.y-stepSize.y*0.5f),textColor,stepName);
+          if (edo31Class[note%31]==DIV_EDO31_DFLAT) {
+            // The custom accidental is merged into the pattern font at a
+            // fixed cell width, so compose it with the UI-font letter here.
+            char noteLetter[2]={stepName[0],0};
+            ImVec2 letterSize=mainFont->CalcTextSizeA(nameSize,FLT_MAX,0.0f,noteLetter);
+            ImVec2 accidentalSize=patFont->CalcTextSizeA(nameSize,FLT_MAX,0.0f,ICON_FUR_DOUBLE_FLAT);
+            float labelX=pos.x-(letterSize.x+accidentalSize.x)*0.5f;
+            dl->AddText(mainFont,nameSize,ImVec2(labelX,pos.y-letterSize.y*0.5f),textColor,noteLetter);
+            dl->AddText(patFont,nameSize,ImVec2(labelX+letterSize.x,pos.y-accidentalSize.y*0.5f),textColor,ICON_FUR_DOUBLE_FLAT);
+          } else {
+            ImVec2 stepSize=mainFont->CalcTextSizeA(nameSize,FLT_MAX,0.0f,stepName);
+            dl->AddText(mainFont,nameSize,ImVec2(pos.x-stepSize.x*0.5f,pos.y-stepSize.y*0.5f),textColor,stepName);
+          }
 
           char octave[2];
           octave[0]='0'+edo31Octave(note);
@@ -256,7 +454,7 @@ void FurnaceGUI::drawTerpstra() {
           ImVec2 octaveSize=mainFont->CalcTextSizeA(smallSize,FLT_MAX,0.0f,octave);
           dl->AddText(mainFont,smallSize,ImVec2(pos.x+hexSize*0.44f-octaveSize.x,pos.y-hexSize*0.62f),textColor,octave);
 
-          int key=note-DIV_EDO31_STEPS*(curOctave-2);
+          int key=note-DIV_EDO31_STEPS*(curOctave-2)-(5*terpstraAnchorQ+2*terpstraAnchorR);
           if (key>=0 && key<=96 && keyBadge[key]) {
             char badge[2];
             badge[0]=keyBadge[key];
