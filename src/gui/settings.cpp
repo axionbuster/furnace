@@ -48,6 +48,7 @@
 #include "newSettings.h"
 
 const ImWchar mainFontExcludeRange[3]={ICON_MIN_FA,ICON_MAX_FA,0};
+const ImWchar patternAccidentalRange[3]={ICON_FUR_FLAT_CODEPOINT,ICON_FUR_DOUBLE_FLAT_CODEPOINT,0};
 
 static String stripName(String what) {
   String ret;
@@ -1128,6 +1129,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fc.OversampleV=1;
     fc.PixelSnapH=true;
     fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
+    fc.GlyphExcludeRanges=patternAccidentalRange;
     if ((iconFont=addFontZlib(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc))==NULL) {
       logE("could not load icon font!");
     }
@@ -1180,6 +1182,28 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       patFont=addFontZlib(font_plexSansJP_compressed_data,font_plexSansJP_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
       patFont=addFontZlib(font_plexSansKR_compressed_data,font_plexSansKR_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
       patFont=addFontZlib(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),&fc1);
+    }
+
+    float patternFontSize=MAX(1,e->getConfInt("patFontSize",18)*dpiScale);
+    float patternCellAdvance=patFont->GetFontBaked(patternFontSize)->GetCharAdvance('A');
+    ImFontConfig patternAccidentalConf;
+    patternAccidentalConf.MergeMode=true;
+    patternAccidentalConf.OversampleH=fontConfP.OversampleH;
+    patternAccidentalConf.OversampleV=fontConfP.OversampleV;
+    patternAccidentalConf.PixelSnapH=true;
+    patternAccidentalConf.GlyphMinAdvanceX=patternCellAdvance;
+    patternAccidentalConf.GlyphMaxAdvanceX=patternCellAdvance;
+    ImFont* patternAccidentalFont=addFontZlib(
+      furIcons_compressed_data,
+      furIcons_compressed_size,
+      patternFontSize,
+      &patternAccidentalConf,
+      patternAccidentalRange
+    );
+    if (patternAccidentalFont!=NULL) {
+      patFont=patternAccidentalFont;
+    } else {
+      logW("could not load pattern accidental glyphs");
     }
 
     if ((bigFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),&fontConfB))==NULL) {

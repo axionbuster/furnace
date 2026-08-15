@@ -191,7 +191,7 @@ void FurnaceGUI::drawPattern() {
     twoChars=ImVec2(oneCharSize*2.0f,patLineHeight);
     oneChar=ImVec2(oneCharSize,patLineHeight);
 
-    noteCellSize=fourChars;
+    noteCellSize=threeChars;
     noteCellSize.x+=(float)settings.noteCellSpacing*dpiScale;
     insCellSize=twoChars;
     insCellSize.x+=(float)settings.insCellSpacing*dpiScale;
@@ -1348,7 +1348,12 @@ void FurnaceGUI::drawPattern() {
           }
 
           // note
-          const char* idN=noteName(pat->newData[row][DIV_PAT_NOTE]);
+          short noteValue=pat->newData[row][DIV_PAT_NOTE];
+          const char* idN=noteName(noteValue);
+          const bool isDoubleFlat=(
+            noteValue>=0 && noteValue<180 &&
+            edo31Class[noteValue%31]==DIV_EDO31_DFLAT
+          );
           if (pat->newData[row][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
             // special case: raw frequency
             unsigned int freq=(
@@ -1392,10 +1397,18 @@ void FurnaceGUI::drawPattern() {
               dl->AddText(pos,activeColor,id);
             }
           } else {
-            if (pat->newData[row][DIV_PAT_NOTE]==-1) {
-              dl->AddText(pos,inactiveColor,idN,idN+4);
+            if (noteValue==-1) {
+              dl->AddText(pos,inactiveColor,idN,idN+3);
+            } else if (isDoubleFlat) {
+              // Keep each component in its own cell so the custom symbol can
+              // never move the octave or widen the pattern column.
+              char noteLetter[2]={edo31Names[noteValue%31][0],0};
+              char octave[2]={(char)('0'+edo31Octave(noteValue)),0};
+              dl->AddText(pos,activeColor,noteLetter);
+              dl->AddText(pos+ImVec2(oneCharSize,0.0f),activeColor,ICON_FUR_DOUBLE_FLAT);
+              dl->AddText(pos+ImVec2(oneCharSize*2.0f,0.0f),activeColor,octave);
             } else {
-              dl->AddText(pos,activeColor,idN,idN+4);
+              dl->AddText(pos,activeColor,idN,idN+3);
             }
           }
 
