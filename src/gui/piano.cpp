@@ -518,11 +518,6 @@ void FurnaceGUI::drawPiano() {
             }
           }
 
-          const float reduction=ImGui::GetIO().DeltaTime*60.0f*0.12;
-          for (int i=0; i<180; i++) {
-            pianoKeyHit[i].value-=reduction;
-            if (pianoKeyHit[i].value<0) pianoKeyHit[i].value=0;
-          }
         }
 
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {

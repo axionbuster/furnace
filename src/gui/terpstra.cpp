@@ -208,6 +208,21 @@ void FurnaceGUI::drawTerpstra() {
       terpstraZoom=1.0f;
     }
     tooltip(_("Reset zoom and pan"));
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_FA_COG "##TerpstraOptions")) {
+      ImGui::OpenPopup("TerpstraOptionsPopup");
+    }
+    tooltip(_("Options"));
+    if (ImGui::BeginPopup("TerpstraOptionsPopup")) {
+      bool channelColorMode=terpstraColorMode==1;
+      ImGui::BeginDisabled(channelColorMode);
+      ImGui::ColorEdit4(_("Color"),(float*)&terpstraColor);
+      ImGui::EndDisabled();
+      if (ImGui::Checkbox(_("Set to channel color"),&channelColorMode)) {
+        terpstraColorMode=channelColorMode?1:0;
+      }
+      ImGui::EndPopup();
+    }
 
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
@@ -374,6 +389,24 @@ void FurnaceGUI::drawTerpstra() {
         if (terpstraKeyPressed[note] || physicalKeyPressed[note]) pitchClassPressed[note%31]=true;
       }
 
+      // Unlike the piano's configurable trigger/volume feedback, the
+      // Terpstra shows the notes which are currently held by playback. A
+      // channel keeps its cell lit until note-off (keyOn becomes false), and
+      // muted channels do not contribute a light. Recompute this every frame
+      // so stopping playback and changing a channel's pitch clear the old
+      // cells without requiring a separate latch to maintain.
+      int playbackChannel[180];
+      memset(playbackChannel,-1,sizeof(playbackChannel));
+      if (e->isRunning()) {
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          DivChannelState* chanState=e->getChanState(i);
+          if (e->isChannelMuted(i) || chanState==NULL || !chanState->keyOn) continue;
+          if (chanState->note>=0 && chanState->note<180) {
+            playbackChannel[chanState->note]=i;
+          }
+        }
+      }
+
       // hexagon outline, rotated with the lattice
       ImVec2 vertex[6];
       for (int i=0; i<6; i++) {
@@ -417,12 +450,30 @@ void FurnaceGUI::drawTerpstra() {
           }
 
           ImU32 fill=TERPSTRA_OUT_OF_RANGE;
+          ImU32 playbackTextColor=TERPSTRA_TEXT_DARK;
           bool pressed=false;
           bool octaveEcho=false;
+          bool playbackLit=false;
           if (inRange) {
             pressed=terpstraKeyPressed[note] || physicalKeyPressed[note];
             octaveEcho=!pressed && pitchClassPressed[note%31];
             fill=pressed?TERPSTRA_PRESSED:terpstraFill[edo31Class[note%31]];
+            int hitChan=playbackChannel[note];
+            if (!pressed && hitChan>=0) {
+              ImVec4 baseColor=ImGui::ColorConvertU32ToFloat4(fill);
+              ImVec4 hitColor=terpstraColor;
+              if (terpstraColorMode==1 && hitChan>=0 && hitChan<e->getTotalChannelCount()) {
+                hitColor=channelColor(hitChan);
+              }
+              float mix=hitColor.w;
+              baseColor.x+=(hitColor.x-baseColor.x)*mix;
+              baseColor.y+=(hitColor.y-baseColor.y)*mix;
+              baseColor.z+=(hitColor.z-baseColor.z)*mix;
+              fill=ImGui::ColorConvertFloat4ToU32(baseColor);
+              float luminance=baseColor.x*0.299f+baseColor.y*0.587f+baseColor.z*0.114f;
+              playbackTextColor=(luminance>0.55f)?TERPSTRA_TEXT_DARK:TERPSTRA_TEXT_LIGHT;
+              playbackLit=true;
+            }
           }
           dl->AddConvexPolyFilled(points,6,fill);
           if (octaveEcho) dl->AddConvexPolyFilled(points,6,TERPSTRA_OCTAVE_ECHO);
@@ -431,7 +482,7 @@ void FurnaceGUI::drawTerpstra() {
           if (!inRange) continue;
           if (!labels) continue;
 
-          ImU32 textColor=pressed?TERPSTRA_TEXT_DARK:terpstraTextColor[edo31Class[note%31]];
+          ImU32 textColor=pressed?TERPSTRA_TEXT_DARK:(playbackLit?playbackTextColor:terpstraTextColor[edo31Class[note%31]]);
 
           const char* stepName=edo31Names[note%31];
           if (edo31Class[note%31]==DIV_EDO31_DFLAT) {

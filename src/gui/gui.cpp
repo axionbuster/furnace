@@ -9120,8 +9120,14 @@ void FurnaceGUI::syncState() {
   terpstraZoom=e->getConfFloat("terpstraZoom",terpstraZoom);
   terpstraAnchorQ=e->getConfInt("terpstraAnchorQ",terpstraAnchorQ);
   terpstraAnchorR=e->getConfInt("terpstraAnchorR",terpstraAnchorR);
+  terpstraColorMode=e->getConfInt("terpstraColorMode",terpstraColorMode);
   terpstraAnchorQ=CLAMP(terpstraAnchorQ,-128,128);
   terpstraAnchorR=CLAMP(terpstraAnchorR,-128,128);
+  terpstraColorMode=CLAMP(terpstraColorMode,0,1);
+  terpstraColor.x=e->getConfFloat("terpstraColorR",terpstraColor.x);
+  terpstraColor.y=e->getConfFloat("terpstraColorG",terpstraColor.y);
+  terpstraColor.z=e->getConfFloat("terpstraColorB",terpstraColor.z);
+  terpstraColor.w=e->getConfFloat("terpstraColorA",terpstraColor.w);
   tuningReferenceNote=e->getConfInt("tuningReferenceNote",DIV_EDO31_A_STEP);
   if (tuningReferenceNote<0 || tuningReferenceNote>=DIV_EDO31_STEPS) tuningReferenceNote=DIV_EDO31_A_STEP;
 
@@ -9305,6 +9311,11 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("terpstraZoom",terpstraZoom);
   conf.set("terpstraAnchorQ",terpstraAnchorQ);
   conf.set("terpstraAnchorR",terpstraAnchorR);
+  conf.set("terpstraColorMode",terpstraColorMode);
+  conf.set("terpstraColorR",terpstraColor.x);
+  conf.set("terpstraColorG",terpstraColor.y);
+  conf.set("terpstraColorB",terpstraColor.z);
+  conf.set("terpstraColorA",terpstraColor.w);
   conf.set("tuningReferenceNote",tuningReferenceNote);
 
   // commit per-chan osc state
@@ -10037,9 +10048,11 @@ FurnaceGUI::FurnaceGUI():
 #endif
   terpstraAnchorQ(0),
   terpstraAnchorR(0),
+  terpstraColorMode(1),
   terpstraPanX(0.0f),
   terpstraPanY(0.0f),
   terpstraZoom(1.0f),
+  terpstraColor(0.247f,0.851f,0.259f,1.0f),
   terpstraTouchGesture(false),
   terpstraTouchX(0.0f),
   terpstraTouchY(0.0f),

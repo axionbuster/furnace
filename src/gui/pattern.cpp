@@ -2313,6 +2313,12 @@ void FurnaceGUI::updateKeyHitPre() {
 }
 
 void FurnaceGUI::updateKeyHitPost() {
+  const float pianoReduction=ImGui::GetIO().DeltaTime*60.0f*0.12f;
+  for (int i=0; i<180; i++) {
+    pianoKeyHit[i].value-=pianoReduction;
+    if (pianoKeyHit[i].value<0.0f) pianoKeyHit[i].value=0.0f;
+  }
+
   for (int i=0; i<e->getTotalChannelCount(); i++) {
     keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
     if (keyHit[i]<0) keyHit[i]=0;

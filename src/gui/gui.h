@@ -2996,8 +2996,9 @@ class FurnaceGUI {
   // Terpstra keyboard
   bool terpstraKeyPressed[180];
   int terpstraPreviewNote[SDL_NUM_SCANCODES];
-  int terpstraAnchorQ, terpstraAnchorR;
+  int terpstraAnchorQ, terpstraAnchorR, terpstraColorMode;
   float terpstraPanX, terpstraPanY, terpstraZoom;
+  ImVec4 terpstraColor;
   bool terpstraTouchGesture;
   float terpstraTouchX, terpstraTouchY, terpstraTouchDistance;
 

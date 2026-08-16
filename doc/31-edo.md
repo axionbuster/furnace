@@ -87,6 +87,8 @@ each hex displays:
 
 cells are filled by accidental class — natural, sharp, flat, double-sharp, and double-flat each get a distinct color — and slots outside the valid 0..179 range are drawn dimmed and are not interactive. clicking or dragging across cells plays notes and (when the pattern editor's edit mode is active) writes them into the pattern, the same way the piano widget does; dragging produces a natural glissando across the pressed cells. the view supports panning (right-mouse drag) and zooming (ctrl + scroll wheel), and both persist between sessions.
 
+while the song plays, active notes light their matching cells and remain lit until their channel receives a note-off, is muted, or playback stops. when a channel changes pitch, its previous cell turns off and its new cell lights. by default the highlight follows the originating channel's color, using the same channel-color scheme as the per-channel oscilloscope. the options button in the keyboard toolbar can switch playback highlights to a custom solid color instead.
+
 
 ## caveats
 
