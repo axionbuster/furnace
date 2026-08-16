@@ -142,7 +142,7 @@ void FurnaceGUI::drawPattern() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)+(0.12*canvasW)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
-    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(0.12*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(0.12*canvasW)):ImVec2(canvasW-(0.16*canvasH),canvasH));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
@@ -2251,8 +2251,6 @@ void FurnaceGUI::drawPattern() {
 
 void FurnaceGUI::updateKeyHitPre() {
   for (int i=0; i<e->getTotalChannelCount(); i++) {
-    bool muted=e->isChannelMuted(i);
-
     // update key hit
     if (e->keyHit[i]) {
       keyHit1[i]=1.0f;
@@ -2265,13 +2263,6 @@ void FurnaceGUI::updateKeyHitPre() {
 
       if (settings.channelFeedbackStyle==1) {
         keyHit[i]=0.2;
-        if (!muted) {
-          int note=e->getChanState(i)->note;
-          if (note>=0 && note<180) {
-            pianoKeyHit[note].value=1.0;
-            pianoKeyHit[note].chan=i;
-          }
-        }
       }
       e->keyHit[i]=false;
     }
@@ -2279,46 +2270,19 @@ void FurnaceGUI::updateKeyHitPre() {
       float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
       if (e->getChanState(i)->keyOff) amount=0.0f;
       keyHit[i]=amount*0.2f;
-      if (!muted && e->getChanState(i)->keyOn) {
-        int note=e->getChanState(i)->note;
-        if (note>=0 && note<180) {
-          pianoKeyHit[note].value=amount;
-          pianoKeyHit[note].chan=i;
-        }
-      }
     } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
       bool active=e->getChanState(i)->keyOn;
       keyHit[i]=active?0.2f:0.0f;
-      if (!muted) {
-        int note=e->getChanState(i)->note;
-        if (note>=0 && note<180) {
-          pianoKeyHit[note].value=active?1.0f:0.0f;
-          pianoKeyHit[note].chan=i;
-        }
-      }
     } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
       float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
       if (isnan(amount)) amount=0; // how is it nan tho??
       if (e->getChanState(i)->keyOff) amount=0.0f;
       keyHit[i]=amount*0.2f;
-      if (!muted && e->getChanState(i)->keyOn) {
-        int note=e->getChanState(i)->note;
-        if (note>=0 && note<180) {
-          pianoKeyHit[note].value=amount;
-          pianoKeyHit[note].chan=i;
-        }
-      }
     }
   }
 }
 
 void FurnaceGUI::updateKeyHitPost() {
-  const float pianoReduction=ImGui::GetIO().DeltaTime*60.0f*0.12f;
-  for (int i=0; i<180; i++) {
-    pianoKeyHit[i].value-=pianoReduction;
-    if (pianoKeyHit[i].value<0.0f) pianoKeyHit[i].value=0.0f;
-  }
-
   for (int i=0; i<e->getTotalChannelCount(); i++) {
     keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
     if (keyHit[i]<0) keyHit[i]=0;

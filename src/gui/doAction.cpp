@@ -316,7 +316,9 @@ void FurnaceGUI::doAction(int what) {
       nextWindow=GUI_WINDOW_COMPAT_FLAGS;
       break;
     case GUI_ACTION_WINDOW_PIANO:
-      nextWindow=GUI_WINDOW_PIANO;
+      // Preserve old saved mappings while routing the retired piano action to
+      // the fork's only visual note-input surface.
+      nextWindow=GUI_WINDOW_TERPSTRA;
       break;
     case GUI_ACTION_WINDOW_NOTES:
       nextWindow=GUI_WINDOW_NOTES;
@@ -442,7 +444,7 @@ void FurnaceGUI::doAction(int what) {
           compatFlagsOpen=false;
           break;
         case GUI_WINDOW_PIANO:
-          pianoOpen=false;
+          terpstraOpen=false;
           break;
         case GUI_WINDOW_NOTES:
           notesOpen=false;

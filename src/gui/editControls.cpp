@@ -50,7 +50,7 @@ const char* mobileButtonLabels[32]={
   _N("paste"),
   _N("delete"),
   _N("select\nall"),
-  _N("piano"),
+  _N("terpstra"),
   _N("undo"),
   _N("redo"),
 
@@ -92,7 +92,7 @@ const int mobileButtonActions[32]={
   GUI_ACTION_PAT_PASTE,
   GUI_ACTION_PAT_DELETE,
   GUI_ACTION_PAT_SELECT_ALL,
-  GUI_ACTION_WINDOW_PIANO,
+  GUI_ACTION_WINDOW_TERPSTRA,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
 

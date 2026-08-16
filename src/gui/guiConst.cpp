@@ -51,54 +51,48 @@ const char* baseNoteNames31[31]={
   "Bbb", "A#",  "Bb",  "Ax",  "B",   "Cb",  "B#"
 };
 
-// 31-EDO fork: one canonical note name table, following edo31.h's naming rules.
-// every entry is exactly 4 characters (three-letter names put the octave digit
-// in the last slot, shorter ones pad with a space) because the pattern editor
-// and the clipboard both treat the note cell as fixed width.
-// the flat and German notation settings no longer change anything - 31-EDO
-// spelling already uses sharps, flats and doubles - so all four tables below
-// carry identical content.
-#define EDO31_NOTE_NAMES \
-  "C-2 ", "Dbb2", "C#2 ", "Db2 ", "Cx2 ", "D-2 ", "Ebb2", "D#2 ", \
-  "Eb2 ", "Dx2 ", "E-2 ", "Fb2 ", "E#2 ", "F-2 ", "Gbb2", "F#2 ", \
-  "Gb2 ", "Fx2 ", "G-2 ", "Abb2", "G#2 ", "Ab2 ", "Gx2 ", "A-2 ", \
-  "Bbb2", "A#2 ", "Bb2 ", "Ax2 ", "B-2 ", "Cb3 ", "B#2 ", \
-  "C-3 ", "Dbb3", "C#3 ", "Db3 ", "Cx3 ", "D-3 ", "Ebb3", "D#3 ", \
-  "Eb3 ", "Dx3 ", "E-3 ", "Fb3 ", "E#3 ", "F-3 ", "Gbb3", "F#3 ", \
-  "Gb3 ", "Fx3 ", "G-3 ", "Abb3", "G#3 ", "Ab3 ", "Gx3 ", "A-3 ", \
-  "Bbb3", "A#3 ", "Bb3 ", "Ax3 ", "B-3 ", "Cb4 ", "B#3 ", \
-  "C-4 ", "Dbb4", "C#4 ", "Db4 ", "Cx4 ", "D-4 ", "Ebb4", "D#4 ", \
-  "Eb4 ", "Dx4 ", "E-4 ", "Fb4 ", "E#4 ", "F-4 ", "Gbb4", "F#4 ", \
-  "Gb4 ", "Fx4 ", "G-4 ", "Abb4", "G#4 ", "Ab4 ", "Gx4 ", "A-4 ", \
-  "Bbb4", "A#4 ", "Bb4 ", "Ax4 ", "B-4 ", "Cb5 ", "B#4 ", \
-  "C-5 ", "Dbb5", "C#5 ", "Db5 ", "Cx5 ", "D-5 ", "Ebb5", "D#5 ", \
-  "Eb5 ", "Dx5 ", "E-5 ", "Fb5 ", "E#5 ", "F-5 ", "Gbb5", "F#5 ", \
-  "Gb5 ", "Fx5 ", "G-5 ", "Abb5", "G#5 ", "Ab5 ", "Gx5 ", "A-5 ", \
-  "Bbb5", "A#5 ", "Bb5 ", "Ax5 ", "B-5 ", "Cb6 ", "B#5 ", \
-  "C-6 ", "Dbb6", "C#6 ", "Db6 ", "Cx6 ", "D-6 ", "Ebb6", "D#6 ", \
-  "Eb6 ", "Dx6 ", "E-6 ", "Fb6 ", "E#6 ", "F-6 ", "Gbb6", "F#6 ", \
-  "Gb6 ", "Fx6 ", "G-6 ", "Abb6", "G#6 ", "Ab6 ", "Gx6 ", "A-6 ", \
-  "Bbb6", "A#6 ", "Bb6 ", "Ax6 ", "B-6 ", "Cb7 ", "B#6 ", \
-  "C-7 ", "Dbb7", "C#7 ", "Db7 ", "Cx7 ", "D-7 ", "Ebb7", "D#7 ", \
-  "Eb7 ", "Dx7 ", "E-7 ", "Fb7 ", "E#7 ", "F-7 ", "Gbb7", "F#7 ", \
-  "Gb7 ", "Fx7 ", "G-7 ", "Abb7", "G#7 ", "Ab7 ", "Gx7 ", "A-7 ", \
-  "Bbb7"
+// The pattern and clipboard use fixed-width four-character note cells. German
+// spelling stays meaningful in 31-EDO: Bbb/Bb/B/B# become Hbb/B/H/H# while
+// remaining four distinct pitches.
+#define EDO31_OCTAVE(_octave,_next,_bbb,_bb,_b,_bsharp) \
+  "C-" _octave " ", "Dbb" _octave, "C#" _octave " ", "Db" _octave " ", \
+  "Cx" _octave " ", "D-" _octave " ", "Ebb" _octave, "D#" _octave " ", \
+  "Eb" _octave " ", "Dx" _octave " ", "E-" _octave " ", "Fb" _octave " ", \
+  "E#" _octave " ", "F-" _octave " ", "Gbb" _octave, "F#" _octave " ", \
+  "Gb" _octave " ", "Fx" _octave " ", "G-" _octave " ", "Abb" _octave, \
+  "G#" _octave " ", "Ab" _octave " ", "Gx" _octave " ", "A-" _octave " ", \
+  _bbb _octave, "A#" _octave " ", _bb _octave " ", "Ax" _octave " ", \
+  _b _octave " ", "Cb" _next " ", _bsharp _octave " "
+
+#define EDO31_PARTIAL_OCTAVE(_octave,_bbb) \
+  "C-" _octave " ", "Dbb" _octave, "C#" _octave " ", "Db" _octave " ", \
+  "Cx" _octave " ", "D-" _octave " ", "Ebb" _octave, "D#" _octave " ", \
+  "Eb" _octave " ", "Dx" _octave " ", "E-" _octave " ", "Fb" _octave " ", \
+  "E#" _octave " ", "F-" _octave " ", "Gbb" _octave, "F#" _octave " ", \
+  "Gb" _octave " ", "Fx" _octave " ", "G-" _octave " ", "Abb" _octave, \
+  "G#" _octave " ", "Ab" _octave " ", "Gx" _octave " ", "A-" _octave " ", \
+  _bbb _octave
 
 const char* noteNames[180]={
-  EDO31_NOTE_NAMES
+  EDO31_OCTAVE("2","3","Bbb","Bb","B-","B#"),
+  EDO31_OCTAVE("3","4","Bbb","Bb","B-","B#"),
+  EDO31_OCTAVE("4","5","Bbb","Bb","B-","B#"),
+  EDO31_OCTAVE("5","6","Bbb","Bb","B-","B#"),
+  EDO31_OCTAVE("6","7","Bbb","Bb","B-","B#"),
+  EDO31_PARTIAL_OCTAVE("7","Bbb")
 };
 
 const char* noteNamesG[180]={
-  EDO31_NOTE_NAMES
+  EDO31_OCTAVE("2","3","Hbb","B-","H-","H#"),
+  EDO31_OCTAVE("3","4","Hbb","B-","H-","H#"),
+  EDO31_OCTAVE("4","5","Hbb","B-","H-","H#"),
+  EDO31_OCTAVE("5","6","Hbb","B-","H-","H#"),
+  EDO31_OCTAVE("6","7","Hbb","B-","H-","H#"),
+  EDO31_PARTIAL_OCTAVE("7","Hbb")
 };
 
-const char* noteNamesF[180]={
-  EDO31_NOTE_NAMES
-};
-
-const char* noteNamesGF[180]={
-  EDO31_NOTE_NAMES
-};
+#undef EDO31_PARTIAL_OCTAVE
+#undef EDO31_OCTAVE
 
 const char* pitchLabel[11]={
   "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"
@@ -640,7 +634,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_VOL_METER", _N("Volume Meter"), 0),
   D("WINDOW_STATS", _N("Statistics"), 0),
   D("WINDOW_COMPAT_FLAGS", _N("Compatibility Flags"), 0),
-  D("WINDOW_PIANO", _N("Piano"), 0),
+  // Reserved to keep persisted action IDs stable after removing the piano.
+  D("WINDOW_PIANO", "", NOT_AN_ACTION),
   D("WINDOW_NOTES", _N("Song Comments"), 0),
   D("WINDOW_TUNER", _N("Tuner"), 0),
   D("WINDOW_SPECTRUM", _N("Spectrum"), 0),

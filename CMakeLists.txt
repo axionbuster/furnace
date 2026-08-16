@@ -1046,7 +1046,6 @@ src/gui/orders.cpp
 src/gui/osc.cpp
 src/gui/patManager.cpp
 src/gui/pattern.cpp
-src/gui/piano.cpp
 src/gui/presets.cpp
 src/gui/refPlayer.cpp
 src/gui/regView.cpp

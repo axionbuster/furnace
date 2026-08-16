@@ -1954,7 +1954,6 @@ class FurnaceGUI {
     bool pullDeleteBehavior;
     bool allowEditDocking;
     bool overflowHighlight;
-    bool flatNotes;
     bool germanNotation;
     bool stepOnDelete;
     bool sysSeparators;
@@ -2204,7 +2203,6 @@ class FurnaceGUI {
       pullDeleteBehavior(true),
       allowEditDocking(true),
       overflowHighlight(false),
-      flatNotes(false),
       germanNotation(false),
       stepOnDelete(false),
       sysSeparators(true),
@@ -2526,7 +2524,7 @@ class FurnaceGUI {
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
-  bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
+  bool notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
   bool multiInsSetupOpen, backupsManagerOpen, terpstraOpen;
@@ -2939,60 +2937,6 @@ class FurnaceGUI {
   // log window
   bool followLog;
 
-  // piano
-  enum PianoLayoutMode {
-    PIANO_LAYOUT_STANDARD = 0,
-    PIANO_LAYOUT_CONTINUOUS,
-    PIANO_LAYOUT_AUTOMATIC,
-    PIANO_LAYOUT_MAX
-  };
-
-  enum PianoInputPadMode {
-    PIANO_INPUT_PAD_DISABLE = 0,
-    PIANO_INPUT_PAD_REPLACE,
-    PIANO_INPUT_PAD_SPLIT_AUTO,
-    PIANO_INPUT_PAD_SPLIT_VISIBLE,
-    PIANO_INPUT_PAD_MAX
-  };
-
-  enum PianoLabelsMode {
-    PIANO_LABELS_OFF=0,
-    PIANO_LABELS_OCTAVE,
-    PIANO_LABELS_NOTE,
-    PIANO_LABELS_NOTE_C,
-    PIANO_LABELS_OCTAVE_C,
-    PIANO_LABELS_OCTAVE_NOTE
-  };
-
-  enum PianoKeyColorMode {
-    PIANO_KEY_COLOR_SINGLE=0,
-    PIANO_KEY_COLOR_CHANNEL,
-    PIANO_KEY_COLOR_INSTRUMENT
-  };
-
-  enum PianoInputMode {
-    PIANO_INPUT_NOTE=0,
-    PIANO_INPUT_VALUE,
-    PIANO_INPUT_ORDER,
-    PIANO_INPUT_SAMPLE_MAP_NOTE,
-    PIANO_INPUT_SAMPLE_MAP_VALUE,
-    PIANO_INPUT_SAMPLE_MAP_DPCM_FREQ,
-    PIANO_INPUT_SAMPLE_MAP_DPCM_DELTA,
-    PIANO_INPUT_RAW_FREQ
-  };
-
-  int pianoOctaves, pianoOctavesEdit;
-  bool pianoOptions, pianoSharePosition, pianoOptionsSet;
-  struct pianoKeyState {
-    float value;
-    int chan;
-  };
-  pianoKeyState pianoKeyHit[180];
-  bool pianoKeyPressed[180];
-  bool pianoReadonly;
-  int pianoOffset, pianoOffsetEdit;
-  int pianoView, pianoInputPadMode, pianoLabelsMode, pianoKeyColorMode;
-
   // Terpstra keyboard
   bool terpstraKeyPressed[180];
   int terpstraPreviewNote[SDL_NUM_SCANCODES];
@@ -3157,10 +3101,6 @@ class FurnaceGUI {
   ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
-  // piano
-  ImVec4 pianoKeyColor(int chan, ImVec4 fallback);
-  void pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note);
-
   void updateWindowTitle();
   void updateROMExportAvail();
   void autoDetectSystem();
@@ -3248,7 +3188,6 @@ class FurnaceGUI {
   void drawStats();
   void drawMemory();
   void drawCompatFlags();
-  void drawPiano();
   void drawNotes(bool asChild=false);
   void drawTuner();
   void drawSpectrum();

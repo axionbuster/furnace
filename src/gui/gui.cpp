@@ -118,10 +118,6 @@ const char* FurnaceGUI::noteName(short note) {
   if (note<0 || note>=180) {
     return "??? ";
   }
-  if (settings.flatNotes) {
-    if (settings.germanNotation) return noteNamesGF[note];
-    return noteNamesF[note];
-  }
   if (settings.germanNotation) return noteNamesG[note];
   return noteNames[note];
 }
@@ -158,7 +154,8 @@ bool FurnaceGUI::decodeNote(const char* what, short& note) {
     return true;
   }
   for (int i=0; i<180; i++) {
-    if (strcmp(what,noteNames[i])==0) {
+    const char* visibleName=settings.germanNotation?noteNamesG[i]:noteNames[i];
+    if (strcmp(what,visibleName)==0) {
       note=i;
       return true;
     }
@@ -1205,11 +1202,6 @@ Pos=1095,243\n\
 Size=151,557\n\
 Collapsed=0\n\
 DockId=0x00000012,0\n\
-\n\
-[Window][Piano]\n\
-Pos=177,669\n\
-Size=922,118\n\
-Collapsed=0\n\
 \n\
 [Window][Log Viewer]\n\
 Pos=60,60\n\
@@ -4634,7 +4626,6 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(stats)
   DECLARE_METRIC(memory)
   DECLARE_METRIC(compatFlags)
-  DECLARE_METRIC(piano)
   DECLARE_METRIC(notes)
   DECLARE_METRIC(tuner)
   DECLARE_METRIC(spectrum)
@@ -5286,7 +5277,6 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(volMeterOpen);
         IMPORT_CLOSE(statsOpen);
         IMPORT_CLOSE(compatFlagsOpen);
-        IMPORT_CLOSE(pianoOpen);
         IMPORT_CLOSE(notesOpen);
         IMPORT_CLOSE(tunerOpen);
         IMPORT_CLOSE(spectrumOpen);
@@ -5696,7 +5686,6 @@ bool FurnaceGUI::loop() {
         ImGui::Separator();
         if (ImGui::MenuItem(_("effect list"),BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem(_("play/edit controls"),BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
-        if (ImGui::MenuItem(_("piano/input pad"),BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
         if (ImGui::MenuItem(_("Terpstra keyboard"),BIND_FOR(GUI_ACTION_WINDOW_TERPSTRA),terpstraOpen)) terpstraOpen=!terpstraOpen;
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
         if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
@@ -5845,25 +5834,21 @@ bool FurnaceGUI::loop() {
           ordersOpen=true;
           curWindow=GUI_WINDOW_ORDERS;
           MEASURE(orders,drawOrders());
-          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_INSTRUMENT:
           insEditOpen=true;
           curWindow=GUI_WINDOW_INS_EDIT;
           MEASURE(insEdit,drawInsEdit());
-          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_WAVETABLE:
           waveEditOpen=true;
           curWindow=GUI_WINDOW_WAVE_EDIT;
           MEASURE(waveEdit,drawWaveEdit());
-          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_SAMPLE:
           sampleEditOpen=true;
           curWindow=GUI_WINDOW_SAMPLE_EDIT;
           MEASURE(sampleEdit,drawSampleEdit());
-          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_CHANNELS:
           channelsOpen=true;
@@ -5884,7 +5869,6 @@ bool FurnaceGUI::loop() {
           patternOpen=true;
           curWindow=GUI_WINDOW_PATTERN;
           MEASURE(pattern,drawPattern());
-          MEASURE(piano,drawPiano());
           MEASURE(mobileOrderSel,drawMobileOrderSel());
 
           globalWinFlags=0;
@@ -5949,7 +5933,6 @@ bool FurnaceGUI::loop() {
       MEASURE(stats,drawStats());
       MEASURE(memory,drawMemory());
       MEASURE(compatFlags,drawCompatFlags());
-      MEASURE(piano,drawPiano());
       MEASURE(notes,drawNotes());
       MEASURE(tuner,drawTuner());
       MEASURE(spectrum,drawSpectrum());
@@ -9018,11 +9001,6 @@ void FurnaceGUI::syncState() {
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
-#ifdef IS_MOBILE
-  pianoOpen=e->getConfBool("pianoOpen",true);
-#else
-  pianoOpen=e->getConfBool("pianoOpen",false);
-#endif
   notesOpen=e->getConfBool("notesOpen",false);
   tunerOpen=e->getConfBool("tunerOpen",false);
   spectrumOpen=e->getConfBool("spectrumOpen",false);
@@ -9101,19 +9079,6 @@ void FurnaceGUI::syncState() {
   spectrum.xOffset=e->getConfFloat("spectrumxOffset",0);
   spectrum.yOffset=e->getConfFloat("spectrumyOffset",0);
   spectrum.mono=e->getConfBool("spectrumMono",false);
-
-  pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
-  pianoOctavesEdit=e->getConfInt("pianoOctavesEdit",pianoOctavesEdit);
-  pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
-  pianoSharePosition=e->getConfBool("pianoSharePosition",pianoSharePosition);
-  pianoOptionsSet=e->getConfBool("pianoOptionsSet",pianoOptionsSet);
-  pianoReadonly=e->getConfBool("pianoReadonly",false);
-  pianoOffset=e->getConfInt("pianoOffset",pianoOffset);
-  pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
-  pianoView=e->getConfInt("pianoView",pianoView);
-  pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
-  pianoLabelsMode=e->getConfInt("pianoLabelsMode",pianoLabelsMode);
-  pianoKeyColorMode=e->getConfInt("pianoKeyColorMode",pianoKeyColorMode);
 
   terpstraPanX=e->getConfFloat("terpstraPanX",terpstraPanX);
   terpstraPanY=e->getConfFloat("terpstraPanY",terpstraPanY);
@@ -9221,7 +9186,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("volMeterOpen",volMeterOpen);
   conf.set("statsOpen",statsOpen);
   conf.set("compatFlagsOpen",compatFlagsOpen);
-  conf.set("pianoOpen",pianoOpen);
   conf.set("notesOpen",notesOpen);
   conf.set("tunerOpen",tunerOpen);
   conf.set("spectrumOpen",spectrumOpen);
@@ -9290,20 +9254,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("spectrumxOffset",spectrum.xOffset);
   conf.set("spectrumyOffset",spectrum.yOffset);
   conf.set("spectrumMono",spectrum.mono);
-
-  // commit piano state
-  conf.set("pianoOctaves",pianoOctaves);
-  conf.set("pianoOctavesEdit",pianoOctavesEdit);
-  conf.set("pianoOptions",pianoOptions);
-  conf.set("pianoSharePosition",pianoSharePosition);
-  conf.set("pianoOptionsSet",pianoOptionsSet);
-  conf.set("pianoReadonly",pianoReadonly);
-  conf.set("pianoOffset",pianoOffset);
-  conf.set("pianoOffsetEdit",pianoOffsetEdit);
-  conf.set("pianoView",pianoView);
-  conf.set("pianoInputPadMode",pianoInputPadMode);
-  conf.set("pianoLabelsMode",pianoLabelsMode);
-  conf.set("pianoKeyColorMode",pianoKeyColorMode);
 
   // commit Terpstra keyboard state
   conf.set("terpstraPanX",terpstraPanX);
@@ -9695,7 +9645,6 @@ FurnaceGUI::FurnaceGUI():
   volMeterOpen(true),
   statsOpen(false),
   compatFlagsOpen(false),
-  pianoOpen(false),
   notesOpen(false),
   tunerOpen(false),
   spectrumOpen(false),
@@ -10020,32 +9969,6 @@ FurnaceGUI::FurnaceGUI():
   fpCueInputFailed(false),
   fpCueInputFailReason(""),
   followLog(true),
-#ifdef IS_MOBILE
-  pianoOctaves(7),
-  pianoOctavesEdit(2),
-  pianoOptions(true),
-  pianoSharePosition(false),
-  pianoOptionsSet(false),
-  pianoReadonly(false),
-  pianoOffset(6),
-  pianoOffsetEdit(9),
-  pianoView(PIANO_LAYOUT_AUTOMATIC),
-  pianoInputPadMode(PIANO_INPUT_PAD_SPLIT_AUTO),
-  pianoLabelsMode(PIANO_LABELS_OCTAVE),
-  pianoKeyColorMode(PIANO_KEY_COLOR_SINGLE),
-#else
-  pianoOctaves(7),
-  pianoOctavesEdit(4),
-  pianoOptions(false),
-  pianoSharePosition(true),
-  pianoReadonly(false),
-  pianoOffset(6),
-  pianoOffsetEdit(6),
-  pianoView(PIANO_LAYOUT_STANDARD),
-  pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
-  pianoLabelsMode(PIANO_LABELS_OCTAVE),
-  pianoKeyColorMode(PIANO_KEY_COLOR_SINGLE),
-#endif
   terpstraAnchorQ(0),
   terpstraAnchorR(0),
   terpstraColorMode(1),
@@ -10198,8 +10121,6 @@ FurnaceGUI::FurnaceGUI():
 
   memset(lastAudioLoads,0,sizeof(float)*120);
 
-  memset(pianoKeyHit,0,sizeof(pianoKeyState)*180); // posiblly repace with a for loop
-  memset(pianoKeyPressed,0,sizeof(bool)*180);
   memset(terpstraKeyPressed,0,sizeof(bool)*180);
   for (int i=0; i<SDL_NUM_SCANCODES; i++) terpstraPreviewNote[i]=-1;
 

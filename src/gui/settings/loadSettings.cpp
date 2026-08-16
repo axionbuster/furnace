@@ -361,7 +361,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.insEditColorize=conf.getBool("insEditColorize",0);
 
     settings.overflowHighlight=conf.getBool("overflowHighlight",0);
-    settings.flatNotes=conf.getBool("flatNotes",0);
     settings.germanNotation=conf.getBool("germanNotation",0);
 
     settings.frameBorders=conf.getBool("frameBorders",0);
@@ -857,7 +856,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("insEditColorize",settings.insEditColorize);
 
     conf.set("overflowHighlight",settings.overflowHighlight);
-    conf.set("flatNotes",settings.flatNotes);
     conf.set("germanNotation",settings.germanNotation);
 
     conf.set("frameBorders",settings.frameBorders);
