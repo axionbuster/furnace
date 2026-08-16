@@ -519,7 +519,16 @@ void FurnaceGUI::drawTerpstra() {
 
           ImU32 textColor=highlighted?highlightTextColor:terpstraTextColor[edo31Class[note%31]];
 
-          const char* stepName=edo31Names[note%31];
+          // Use the same formatter as the pattern editor so notation changes
+          // are reflected here immediately. Pattern names are fixed-width:
+          // the octave digit is third for short names and fourth for double
+          // flats; a hyphen marks a natural and is omitted from this label.
+          const char* visibleName=noteName(note);
+          char stepName[4]={visibleName[0],0,0,0};
+          if (visibleName[1]!='-') {
+            stepName[1]=visibleName[1];
+            if (visibleName[2]<'0' || visibleName[2]>'9') stepName[2]=visibleName[2];
+          }
           if (edo31Class[note%31]==DIV_EDO31_DFLAT) {
             // the custom accidental is merged into the pattern font at a
             // fixed cell width, so compose it with the UI-font letter here.
@@ -534,9 +543,7 @@ void FurnaceGUI::drawTerpstra() {
             dl->AddText(mainFont,nameSize,ImVec2(pos.x-stepSize.x*0.5f,pos.y-stepSize.y*0.5f),textColor,stepName);
           }
 
-          char octave[2];
-          octave[0]='0'+edo31Octave(note);
-          octave[1]=0;
+          char octave[2]={visibleName[3]==' '?visibleName[2]:visibleName[3],0};
           ImVec2 octaveSize=mainFont->CalcTextSizeA(smallSize,FLT_MAX,0.0f,octave);
           dl->AddText(mainFont,smallSize,ImVec2(pos.x+hexSize*0.44f-octaveSize.x,pos.y-hexSize*0.62f),textColor,octave);
 
