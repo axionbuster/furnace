@@ -289,7 +289,7 @@ void FurnaceGUI::drawTerpstra() {
           float wheel=(fabs(io.MouseWheel)>=fabs(io.MouseWheelH))?io.MouseWheel:io.MouseWheelH;
           zoomAt(io.MousePos,pow(2.0f,wheel*0.18f));
         } else {
-          terpstraPanX-=io.MouseWheelH*36.0f*dpiScale;
+          terpstraPanX+=io.MouseWheelH*36.0f*dpiScale;
           terpstraPanY+=io.MouseWheel*36.0f*dpiScale;
         }
       }
