@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run after exporting icons.ttf from icons.sfd.
+# run after exporting icons.ttf from icons.sfd
 
 set -euo pipefail
 
@@ -13,9 +13,9 @@ fi
 hint_dir=$(mktemp -d "${TMPDIR:-/tmp}/furnace-icons.XXXXXX")
 trap 'rm -rf -- "$hint_dir"' EXIT
 
-# Treat the private-use glyphs as symbols, hint composites too, and preserve the
-# flat's one-pixel stem at the default pattern size. 114 is the 100-unit stem
-# normalized from Furnace Icons' 1792-unit em to ttfautohint's 2048-unit em.
+# treat the private-use glyphs as symbols, hint composites too, and preserve the
+# flat's one-pixel stem at the default pattern size; 114 is the 100-unit stem
+# normalized from Furnace Icons' 1792-unit em to ttfautohint's 2048-unit em
 if ttfautohint -s -c -n -H 114 -x 0 icons.ttf "$hint_dir/icons.ttf" 2>"$hint_dir/ttfautohint.log"; then
   mv -- "$hint_dir/icons.ttf" icons.ttf
 elif grep -q "already been processed with ttfautohint" "$hint_dir/ttfautohint.log"; then

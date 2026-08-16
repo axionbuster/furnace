@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,13 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// 31-EDO fork: shared constants and helpers for the 31-equal-divisions-of-the-
-// octave reinterpretation of the 180-slot note space.
+// 31-EDO fork: shared constants and helpers for reinterpreting the 180-slot
+// note space as 31 equal divisions of the octave.
 //
 // slot = 31*(octave-2) + step, step in [0,30]. octave digits run 2..7.
 // slot 62 = middle C ("C-4"). slot 85 = A-4 = song.tuning Hz.
@@ -26,7 +26,7 @@
 //
 // spelling is chain-of-fifths meantone: 7 naturals, 7 sharps, 7 flats,
 // 5 double sharps (Cx Dx Fx Gx Ax) and 5 double flats (Dbb Ebb Gbb Abb Bbb).
-// the octave digit follows the LETTER (scientific pitch), so Cb (step 29)
+// the octave digit follows the letter name (scientific pitch), so Cb (step 29)
 // takes the digit of the C above it; B# (step 30) keeps its own chunk's digit.
 
 #ifndef _EDO31_H
@@ -70,19 +70,19 @@ static const unsigned char edo31Class[31]={
   DIV_EDO31_NATURAL, DIV_EDO31_FLAT,    DIV_EDO31_SHARP
 };
 
-// Conventional 12-EDO semitone for each spelling above middle C. B# reaches
+// conventional 12-EDO semitone for each spelling above middle C. B# reaches
 // the C above rather than wrapping to zero, matching scientific pitch names.
 static const unsigned char edo31TwelveEDOSemitones[31]={
   0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6,
   6, 7, 7, 7, 8, 8, 9, 9, 9, 10, 10, 11, 11, 11, 12
 };
 
-// Frequency of a reference spelling in octave 4 when A-4 is the tuning.
+// frequency of a reference spelling in octave 4 when A-4 is the tuning.
 static inline double edo31ReferenceFrequency(double tuning, int step) {
   return tuning*std::pow(2.0,(double)(step-DIV_EDO31_A_STEP)/(double)DIV_EDO31_STEPS);
 }
 
-// Conventional 12-EDO frequency of a reference spelling at A-4 = 440 Hz.
+// conventional 12-EDO frequency of a reference spelling at A-4 = 440 Hz.
 static inline double edo31StandardReferenceFrequency(int step) {
   return 440.0*std::pow(
     2.0,
@@ -90,13 +90,13 @@ static inline double edo31StandardReferenceFrequency(int step) {
   );
 }
 
-// Convert a spelled reference frequency back to Furnace's stored A-4 anchor.
+// convert a spelled reference frequency back to Furnace's stored A-4 anchor.
 static inline double edo31TuningFromReferenceFrequency(double frequency, int step) {
   return frequency*std::pow(2.0,(double)(DIV_EDO31_A_STEP-step)/(double)DIV_EDO31_STEPS);
 }
 
-// Choose another exact spelling while preserving the current concert-pitch
-// ratio. At standard pitch this pins the new spelling to its 12-EDO frequency.
+// choose another exact spelling while preserving the current concert-pitch
+// ratio. at standard pitch this pins the new spelling to its 12-EDO frequency.
 static inline double edo31RetuneForReference(double tuning, int oldStep, int newStep) {
   double ratio=edo31ReferenceFrequency(tuning,oldStep)/edo31StandardReferenceFrequency(oldStep);
   return edo31TuningFromReferenceFrequency(

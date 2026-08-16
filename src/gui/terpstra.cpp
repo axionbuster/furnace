@@ -141,8 +141,8 @@ void FurnaceGUI::drawTerpstra() {
       terpstraPanY*=ratio;
     };
 
-    // Experimental pattern and keyboard-guide controls. Keeping this a single
-    // compact row leaves the lattice layout itself unchanged.
+    // keep the pattern and keyboard-guide controls in one compact row so the
+    // lattice layout itself remains unchanged.
     ImGui::Text("%s %d",_("Step"),editStep);
     ImGui::SameLine();
     ImGui::BeginDisabled(!edit);
@@ -294,7 +294,7 @@ void FurnaceGUI::drawTerpstra() {
         }
       }
 
-      // Direct two-touch input pans and pinches. Desktop trackpads arrive as
+      // direct two-touch input pans and pinches. desktop trackpads arrive as
       // precise wheel events above; touch screens use the same viewport math.
       TouchPoint* gesturePoints[2]={NULL,NULL};
       int gesturePointCount=0;
@@ -390,8 +390,8 @@ void FurnaceGUI::drawTerpstra() {
         if (note>=0 && note<180) physicalKeyPressed[note]=true;
       }
 
-      // Resolve a held preview note back to the actual channel selected by
-      // autoNoteOn(). This keeps the visual correct when polyphonic preview
+      // resolve a held preview note back to the actual channel selected by
+      // autoNoteOn(). this keeps the visual correct when polyphonic preview
       // routes away from the cursor channel as well as in mono mode.
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivChannelState* chanState=e->getChanState(i);
@@ -413,10 +413,10 @@ void FurnaceGUI::drawTerpstra() {
         }
       }
 
-      // Unlike the piano's configurable trigger/volume feedback, the
-      // Terpstra shows the notes which are currently held by playback. A
+      // unlike the piano's configurable trigger/volume feedback, the
+      // Terpstra shows the notes which are currently held by playback. a
       // channel keeps its cell lit until note-off (keyOn becomes false), and
-      // muted channels do not contribute a light. Recompute this every frame
+      // muted channels do not contribute a light. recompute this every frame
       // so stopping playback and changing a channel's pitch clear the old
       // cells without requiring a separate latch to maintain.
       int playbackChannel[180];
@@ -521,7 +521,7 @@ void FurnaceGUI::drawTerpstra() {
 
           const char* stepName=edo31Names[note%31];
           if (edo31Class[note%31]==DIV_EDO31_DFLAT) {
-            // The custom accidental is merged into the pattern font at a
+            // the custom accidental is merged into the pattern font at a
             // fixed cell width, so compose it with the UI-font letter here.
             char noteLetter[2]={stepName[0],0};
             ImVec2 letterSize=mainFont->CalcTextSizeA(nameSize,FLT_MAX,0.0f,noteLetter);

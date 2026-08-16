@@ -436,7 +436,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         // pitch into the 12-EDO 8.7 pitch of the same frequency (A-4 is slot 85
         // here and slot 117 there), then run the usual pipeline in 12-space.
         int freq12=(117<<7)+(int)round((double)(chan[i].freq-(DIV_EDO31_A4<<7))*12.0/(double)DIV_EDO31_STEPS);
-        // OPZ shares OPM's historical one-semitone hardware bias. Keep that
+        // OPZ shares OPM's historical one-semitone hardware bias; keep that
         // bias in 12-EDO register space instead of scaling it by 12/31.
         freq12+=OFFSET_LINEAR-128;
         if (freq12<0) freq12=0;

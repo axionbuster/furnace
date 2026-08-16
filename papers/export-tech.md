@@ -387,9 +387,7 @@ hex | description
  ff | preset delay 15
 ```
 
-note-on values `00` through `b3` are consecutive 31-EDO slots in this fork. a
-consumer must use the fork's 31-step pitch mapping; the legacy reference drivers
-that derive periods from 12-note octave tables do not reproduce native fork pitch.
+note-on values `00` through `b3` are consecutive 31-EDO slots in this fork. a consumer must use the fork's 31-step pitch mapping; the legacy reference drivers that derive periods from 12-note octave tables do not reproduce native fork pitch.
 
 ## full commands
 

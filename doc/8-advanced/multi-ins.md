@@ -6,6 +6,6 @@ the following window also appears.
 
 ![multi-instrument setup](multi-ins.png)
 
-clicking the arrows will set the note offset (in 31-EDO steps) for each selected instrument. clicking a column resets it to zero. right-clicking the arrows will change their value by a full 31-step octave.
+clicking the arrows will set the note offset (in 31-EDO steps) for each selected instrument. clicking a column resets it to zero. right-clicking the arrows will change their value by a full octave (31 steps).
 
 multi-instrument playback cannot be used while polyphony is set to "Mono".

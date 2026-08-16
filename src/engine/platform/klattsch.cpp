@@ -208,7 +208,7 @@ void DivPlatformKlattsch::convertBaseFreqMode(Channel& ch, bool raw) {
     return;
   }
 
-  // Normal mode uses 1/128-step base units. Preserve the current audible
+  // normal mode uses 1/128-step base units. preserve the current audible
   // pitch while changing domains, accounting for the offsets effectiveF0 adds.
   if (currentHz>0.0f && parent->song.tuning>0.0f) {
     const float note=(float)DIV_EDO31_A4+(float)DIV_EDO31_STEPS*std::log2(currentHz/parent->song.tuning);

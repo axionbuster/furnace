@@ -997,7 +997,7 @@ void FurnaceGUI::doAction(int what) {
             if (sample!=NULL) {
               DivWavetable* wave=e->song.wave[curWave];
               unsigned int waveLen=wave->len;
-              // Preserve one wavetable cycle at the song's native C-4 pitch.
+              // preserve one wavetable cycle at the song's native C-4 pitch.
               sample->centerRate=(int)round(
                 edo31ReferenceFrequency(
                   e->song.tuning,

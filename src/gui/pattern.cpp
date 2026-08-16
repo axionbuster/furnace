@@ -1400,7 +1400,7 @@ void FurnaceGUI::drawPattern() {
             if (noteValue==-1) {
               dl->AddText(pos,inactiveColor,idN,idN+3);
             } else if (isDoubleFlat) {
-              // Keep each component in its own cell so the custom symbol can
+              // keep each component in its own cell so the custom symbol can
               // never move the octave or widen the pattern column.
               char noteLetter[2]={edo31Names[noteValue%31][0],0};
               char octave[2]={(char)('0'+edo31Octave(noteValue)),0};

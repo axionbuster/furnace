@@ -1046,9 +1046,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           // COMPAT FLAG: limit slide range
-          // The stock compatibility range (through C-8) contains the fork's
-          // entire, shorter 31-EDO note space. Per-system floors likewise
-          // resolve to slot 0, so the native slot bounds are the limit here.
+          // - the stock compatibility range through C-8 contains the fork's
+          //   entire, shorter 31-EDO note space.
+          // - per-system floors likewise resolve to slot 0, so the native slot
+          //   bounds are the limit here.
           if (chan[i].note&DIV_NOTE_RAW_FLAG) {
             // if we're in raw frequency mode, we must use the max raw frequency
             chan[i].portaNote=getMaxFreqChan(i)|DIV_NOTE_RAW_FLAG;
@@ -1090,8 +1091,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           // COMPAT FLAG: limit slide range
-          // The stock limited range contains the fork's entire, shorter
-          // 31-EDO note space; the native lower bound is slot 0.
+          // - the stock limited range contains the fork's entire, shorter
+          //   31-EDO note space; the native lower bound is slot 0.
           if (chan[i].note&DIV_NOTE_RAW_FLAG) {
             // if we're in raw frequency mode, we must use zero
             chan[i].portaNote=0|DIV_NOTE_RAW_FLAG;
@@ -1753,7 +1754,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
             }
           } else {
             if (effect==0xf1) {
-              // The stock limited range contains the entire 31-EDO note space.
+              // COMPAT FLAG: limit slide range
+              // - the stock limited range contains the entire 31-EDO note space.
               chan[i].portaNote=DIV_EDO31_MAX_SLOT;
             } else {
               // COMPAT FLAG: limit slide range

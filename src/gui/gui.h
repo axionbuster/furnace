@@ -156,9 +156,9 @@ enum FurnaceGUIRenderBackend {
 #define GUI_EDIT_OCTAVE_MAX 7
 
 // chromatic rows: ZXCVBNM,./ are steps 0-9, ASDFGHJKL;' are 10-20,
-// QWERTYUIOP are 21-30 and the number row continues from there. QWERTY has no
-// fifth row, so this is not an isomorphic layout - that is what the Terpstra
-// window and MIDI are for. 100-103 keep their stock bindings.
+// QWERTYUIOP are 21-30 and the number row continues from there. a standard
+// QWERTY keyboard has no fifth row, so this layout is not isomorphic; use the
+// Terpstra window or MIDI for isomorphic input. 100-103 keep their stock bindings.
 #define DEFAULT_NOTE_KEYS "4:10;5:4;6:2;7:12;8:23;9:13;10:14;11:15;12:28;13:16;14:17;15:18;16:6;17:5;18:29;19:30;20:21;21:24;22:11;23:25;24:27;25:3;26:22;27:1;28:26;29:0;30:100;31:32;32:33;33:34;34:35;35:36;36:37;37:38;38:39;39:40;43:100;46:101;47:31;48:32;51:19;52:20;53:102;54:7;55:8;56:9;45:103;"
 
 // TODO:

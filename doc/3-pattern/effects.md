@@ -46,7 +46,7 @@ however, effects are continuous (unless specified), which means you only need to
 - `E8xy`: **Quick legato up**. transposes the note up by `y` 31-EDO steps after `x` ticks.
 - `E9xy`: **Quick legato down**. transposes the note down by `y` 31-EDO steps after `x` ticks.
 - `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` 31-EDO steps, and the note plus `y` 31-EDO steps.
-  - each offset is a hexadecimal nibble and is therefore limited to 0–15 steps. a 31-EDO perfect fifth is 18 steps, so this compact effect cannot currently express a fifth or wider interval.
+  - each offset is a hexadecimal nibble, so its range is 0 to 15 steps. a 31-EDO perfect fifth is 18 steps, so this compact effect cannot currently express a fifth or wider interval.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
 - `04xy`: **Vibrato.** makes the pitch oscillate. `x` is the speed, while `y` is the depth.

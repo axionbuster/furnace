@@ -1223,7 +1223,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 // this stays lossy (up to ~19 cents of quantization), but it keeps the written
 // fields inside the range the format allows.
 static int dmfNoteToTwelveEDOSlot(short note) {
-  // Stock calibration puts A-4 at slot 117. The 0..179 clamp is part of the
+  // stock calibration puts A-4 at slot 117. the 0..179 clamp is part of the
   // external 12-EDO format's note range, not the fork's native slot range.
   int slot12=117+(int)round((double)(note-DIV_EDO31_A4)*12.0/(double)DIV_EDO31_STEPS);
   return CLAMP(slot12,0,179);

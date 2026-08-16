@@ -503,7 +503,7 @@ void DivPlatformArcade::tick(bool sysTick) {
         // pitch into the 12-EDO 8.7 pitch of the same frequency (A-4 is slot 85
         // here and slot 117 there), then run the usual pipeline in 12-space.
         int freq12=(117<<7)+(int)round((double)(chan[i].freq-(DIV_EDO31_A4<<7))*12.0/(double)DIV_EDO31_STEPS);
-        // OPM's historical -128 bias is one 12-EDO semitone. Applying it
+        // OPM's historical -128 bias is one 12-EDO semitone; applying it
         // before the conversion incorrectly shrinks it to 12/31 of a semitone
         // and leaves every non-raw note about 61.3 cents sharp.
         freq12+=OFFSET_LINEAR-128;
