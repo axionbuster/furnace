@@ -209,12 +209,12 @@ void DivPlatformGB::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (i==3) { // noise
-        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,24);
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,2*DIV_EDO31_STEPS);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (!chan[i].inPorta) {
-          chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
+          chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val,2*DIV_EDO31_STEPS));
         }
       }
       chan[i].freqChanged=true;
@@ -679,7 +679,7 @@ void DivPlatformGB::reset() {
 }
 
 int DivPlatformGB::getPortaFloor(int ch) {
-  return 84;
+  return 0;
 }
 
 int DivPlatformGB::getOutputCount() {

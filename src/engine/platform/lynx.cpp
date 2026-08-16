@@ -566,10 +566,6 @@ bool DivPlatformLynx::getLegacyAlwaysSetVolume() {
   return false;
 }
 
-//int DivPlatformLynx::getPortaFloor(int ch) {
-//  return 72;
-//}
-
 void DivPlatformLynx::setFlags(const DivConfig& flags) {
   tuned=flags.getBool("tuned",false);
   chipClock=16000000;

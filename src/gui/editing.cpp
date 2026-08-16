@@ -2037,8 +2037,8 @@ void FurnaceGUI::doAbsorbInstrument() {
         setCurIns(pat->newData[i][DIV_PAT_INS]);
       }
 
-      // absorb most recent octave (i.e. set curOctave such that the "main row" (QWERTY) of
-      // notes will result in an octave number equal to the previous note). make sure to
+      // absorb most recent octave (i.e. set curOctave to the 31-step block
+      // containing the previous note). make sure to
       // skip "special note values" like OFF/REL/=== and "none", since there won't be valid
       // octave values
       short note=pat->newData[i][DIV_PAT_NOTE];
@@ -2046,9 +2046,9 @@ void FurnaceGUI::doAbsorbInstrument() {
         foundOctave=true;
 
         // decode octave data
-        int octave=(pat->newData[i][DIV_PAT_NOTE]/31)+2;
+        int octave=(pat->newData[i][DIV_PAT_NOTE]/DIV_EDO31_STEPS)+2;
 
-        curOctave=CLAMP(octave-1,GUI_EDIT_OCTAVE_MIN,GUI_EDIT_OCTAVE_MAX);
+        curOctave=CLAMP(octave,GUI_EDIT_OCTAVE_MIN,GUI_EDIT_OCTAVE_MAX);
       }
     }
   }

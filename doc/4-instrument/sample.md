@@ -25,7 +25,7 @@ you may click and drag in the sample number and note columns to select a range. 
 you may right-click anywhere in the number and note columns for additional options:
 - **set entire map to this note**: sets the note number of all notes to the selected cell's.
 - **set entire map to this sample**: sets the sample number of all notes to the selected cell's.
-- **reset notes**: resets the sample map's notes to defaults (a chromatic scale).
+- **reset notes**: resets the sample map to an identity mapping, with each input slot mapped to the same 31-EDO output slot.
 - **clear map samples**: removes all samples from the map.
 
 ## Macros

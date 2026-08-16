@@ -962,13 +962,13 @@ struct DivInstrumentSID3 {
     // this is done purely in software
     bool absoluteCutoff;
     bool bindCutoffToNote;
-    unsigned char bindCutoffToNoteStrength; // how much cutoff changes over e.g. 1 semitone
+    unsigned char bindCutoffToNoteStrength; // how much cutoff changes over e.g. one 31-EDO step
     unsigned char bindCutoffToNoteCenter; // central note of the cutoff change
     bool bindCutoffToNoteDir; // if we decrease or increase cutoff if e.g. we go upper in note space
     bool bindCutoffOnNote; // only do cutoff scaling once, on new note
 
     bool bindResonanceToNote;
-    unsigned char bindResonanceToNoteStrength; // how much resonance changes over e.g. 1 semitone
+    unsigned char bindResonanceToNoteStrength; // how much resonance changes over e.g. one 31-EDO step
     unsigned char bindResonanceToNoteCenter; // central note of the resonance change
     bool bindResonanceToNoteDir; // if we decrease or increase resonance if e.g. we go upper in note space
     bool bindResonanceOnNote; // only do resonance scaling once, on new note

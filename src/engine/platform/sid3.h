@@ -55,12 +55,12 @@ class DivPlatformSID3: public DivDispatch {
       short cutoff_slide;
 
       bool bindCutoffToNote; //cutoff scaling
-      unsigned char bindCutoffToNoteStrength; //how much cutoff changes over e.g. 1 semitone
+      unsigned char bindCutoffToNoteStrength; //how much cutoff changes over e.g. one 31-EDO step
       unsigned char bindCutoffToNoteCenter; //central note of the cutoff change
       bool bindCutoffToNoteDir; //if we decrease or increase cutoff if e.g. we go upper in note space
 
       bool bindResonanceToNote;
-      unsigned char bindResonanceToNoteStrength; //how much resonance changes over e.g. 1 semitone
+      unsigned char bindResonanceToNoteStrength; //how much resonance changes over e.g. one 31-EDO step
       unsigned char bindResonanceToNoteCenter; //central note of the resonance change
       bool bindResonanceToNoteDir; //if we decrease or increase resonance if e.g. we go upper in note space
 

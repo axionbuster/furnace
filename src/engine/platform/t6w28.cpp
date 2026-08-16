@@ -95,8 +95,15 @@ void DivPlatformT6W28::writeOutVol(int ch) {
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
   if (chan[ch].rawFreq) return chan[ch].calcFreq();
-  if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(167<<7)) {
-    int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(167<<7)))>>7;
+  double CHIP_DIVIDER=(ch==3)?15.0:16.0;
+  int easyStartingPeriod=13;
+  int easyThreshold=round(128.0*(double)DIV_EDO31_STEPS*(log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0)-5.0))+64+(DIV_EDO31_A4<<7);
+  int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);
+  if (chan[ch].fixedArp) {
+    curFreq=(chan[ch].baseNoteOverride<<7)+chan[ch].pitch+chan[ch].pitch2;
+  }
+  if (parent->song.compatFlags.linearPitch && easyNoise && curFreq>easyThreshold) {
+    int ret=(((easyStartingPeriod<<7)+0x40)-(curFreq-easyThreshold))>>7;
     if (ret<0) ret=0;
     return ret;
   }

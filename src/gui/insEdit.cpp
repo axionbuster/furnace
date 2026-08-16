@@ -62,7 +62,7 @@ const char* esfmParamLongNames[9]={
   _N("Modulation Input Level"),
   _N("Left Output"),
   _N("Right Output"),
-  _N("Coarse Tune (semitones)"),
+  _N("Coarse Tune (31-EDO steps)"),
   _N("Detune"),
   _N("Fixed Frequency Mode")
 };
@@ -709,8 +709,9 @@ const char* macroDummyMode="Bug";
 String macroHoverNote(int id, float val, void* u) {
   int* macroVal=(int*)u;
   if ((macroVal[id]&0xc0000000)==0x40000000 || (macroVal[id]&0xc0000000)==0x80000000) {
-    if (val<-62 || val>=118) return "???";
-    return fmt::sprintf("%d: %s",id,noteNames[(int)val+62]);
+    int note=(int)val+DIV_EDO31_MIDDLE_C;
+    if (note<0 || note>DIV_EDO31_MAX_SLOT) return "???";
+    return fmt::sprintf("%d: %s",id,noteNames[note]);
   }
   return fmt::sprintf("%d: %d",id,(int)val);
 }
@@ -2134,8 +2135,8 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
     if (MACRO_VZOOM<1) {
       if (i.macro->macroType==DIV_MACRO_ARP || i.isArp) {
-        MACRO_VZOOM=62;
-        MACRO_VSCROLL=120-31;
+        MACRO_VZOOM=2*DIV_EDO31_STEPS;
+        MACRO_VSCROLL=120-DIV_EDO31_STEPS;
       }
       else if ((i.macro->macroType == DIV_MACRO_PITCH || i.isPitch) || (i.macro->macroType == DIV_MACRO_EX7 && i.isPitch)) {
         MACRO_VZOOM=128;

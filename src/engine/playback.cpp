@@ -352,7 +352,7 @@ const char* formatNote(short note) {
     return "=== ";
   } else if (note==DIV_MACRO_REL) {
     return "REL ";
-  } else if (note<0 || note>=180) {
+  } else if (note<0 || note>=DIV_EDO31_NOTE_COUNT) {
     return "--- ";
   }
   edo31FormatNote(note,ret);
@@ -1046,16 +1046,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           // COMPAT FLAG: limit slide range
-          // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
-          // - yep, the lowest portamento note depends on the system...
-          // - the highest note is B-9. I am sorry.
+          // The stock compatibility range (through C-8) contains the fork's
+          // entire, shorter 31-EDO note space. Per-system floors likewise
+          // resolve to slot 0, so the native slot bounds are the limit here.
           if (chan[i].note&DIV_NOTE_RAW_FLAG) {
             // if we're in raw frequency mode, we must use the max raw frequency
             chan[i].portaNote=getMaxFreqChan(i)|DIV_NOTE_RAW_FLAG;
             chan[i].portaSpeed=effectVal;
           } else {
             // otherwise proceed as usual
-            chan[i].portaNote=song.compatFlags.limitSlides?156:179;
+            chan[i].portaNote=DIV_EDO31_MAX_SLOT;
             chan[i].portaSpeed=effectVal;
           }
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
@@ -1090,8 +1090,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
           // COMPAT FLAG: limit slide range
-          // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
-          // - yep, the lowest portamento note depends on the system...
+          // The stock limited range contains the fork's entire, shorter
+          // 31-EDO note space; the native lower bound is slot 0.
           if (chan[i].note&DIV_NOTE_RAW_FLAG) {
             // if we're in raw frequency mode, we must use zero
             chan[i].portaNote=0|DIV_NOTE_RAW_FLAG;
@@ -1753,8 +1753,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
             }
           } else {
             if (effect==0xf1) {
-              // COMPAT FLAG: limit slide range
-              chan[i].portaNote=song.compatFlags.limitSlides?156:179;
+              // The stock limited range contains the entire 31-EDO note space.
+              chan[i].portaNote=DIV_EDO31_MAX_SLOT;
             } else {
               // COMPAT FLAG: limit slide range
               chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;

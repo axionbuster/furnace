@@ -28,6 +28,7 @@ void FurnaceGUI::drawMultiInsSetup() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!multiInsSetupOpen && !isMultiInsActive()) return;
+  const int transposeMax=5*DIV_EDO31_STEPS;
   if (ImGui::Begin("Multi-Ins Setup",isMultiInsActive()?NULL:&multiInsSetupOpen,globalWinFlags,_("Multi-Ins Setup"))) {
     if (ImGui::BeginTable("MultiInsSlots",8,ImGuiTableFlags_SizingStretchSame)) {
       ImGui::TableNextRow();
@@ -55,13 +56,13 @@ void FurnaceGUI::drawMultiInsSetup() {
         if (ImGui::Button(ICON_FA_CHEVRON_UP "##Up",ImVec2(ImGui::GetContentRegionAvail().x,0))) {
           if (i>0) {
             multiInsTranspose[i-1]++;
-            if (multiInsTranspose[i-1]>60) multiInsTranspose[i-1]=60;
+            if (multiInsTranspose[i-1]>transposeMax) multiInsTranspose[i-1]=transposeMax;
           }
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           if (i>0) {
-            multiInsTranspose[i-1]+=12;
-            if (multiInsTranspose[i-1]>60) multiInsTranspose[i-1]=60;
+            multiInsTranspose[i-1]+=DIV_EDO31_STEPS;
+            if (multiInsTranspose[i-1]>transposeMax) multiInsTranspose[i-1]=transposeMax;
           }
         }
         ImGui::PopStyleVar();
@@ -92,13 +93,13 @@ void FurnaceGUI::drawMultiInsSetup() {
         if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##Down",ImVec2(ImGui::GetContentRegionAvail().x,0))) {
           if (i>0) {
             multiInsTranspose[i-1]--;
-            if (multiInsTranspose[i-1]<-60) multiInsTranspose[i-1]=-60;
+            if (multiInsTranspose[i-1]<-transposeMax) multiInsTranspose[i-1]=-transposeMax;
           }
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           if (i>0) {
-            multiInsTranspose[i-1]-=12;
-            if (multiInsTranspose[i-1]<-60) multiInsTranspose[i-1]=-60;
+            multiInsTranspose[i-1]-=DIV_EDO31_STEPS;
+            if (multiInsTranspose[i-1]<-transposeMax) multiInsTranspose[i-1]=-transposeMax;
           }
         }
         ImGui::PopStyleVar();

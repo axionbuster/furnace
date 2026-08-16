@@ -127,7 +127,7 @@ unsigned int DivDispatch::getMaxFreq(int ch) {
 }
 
 int DivDispatch::getPortaFloor(int ch) {
-  return 60;
+  return 0;
 }
 
 bool DivDispatch::getLegacyAlwaysSetVolume() {

@@ -194,7 +194,7 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
     return chan[ch].calcBaseFreq(note);
   }
   int easyStartingPeriod=16;
-  int easyThreshold=round(12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-3+60;
+  int easyThreshold=round((double)DIV_EDO31_STEPS*(log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0)-5.0))+DIV_EDO31_A4;
   if (note>easyThreshold) {
     return MAX(0,easyStartingPeriod-(note-easyThreshold));
   }
@@ -210,7 +210,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
   int easyThreshold=round(128.0*(double)DIV_EDO31_STEPS*(log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0)-5.0))+64+(DIV_EDO31_A4<<7);
   int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);
   if (chan[ch].fixedArp) {
-    curFreq=chan[ch].baseNoteOverride<<7;
+    curFreq=(chan[ch].baseNoteOverride<<7)+chan[ch].pitch+chan[ch].pitch2;
   }
   if (parent->song.compatFlags.linearPitch && easyNoise && curFreq>easyThreshold) {
     int ret=(((easyStartingPeriod<<7))-(curFreq-(easyThreshold)))>>7;
@@ -236,7 +236,7 @@ void DivPlatformSMS::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (!easyNoise) while (areYouSerious>156) areYouSerious-=12;
+        if (!easyNoise) while (areYouSerious>DIV_EDO31_MAX_SLOT) areYouSerious-=DIV_EDO31_STEPS;
         chan[i].baseFreq=NOTE_SN(i,areYouSerious);
         chan[i].actualNote=areYouSerious;
         chan[i].freqChanged=true;
@@ -286,7 +286,6 @@ void DivPlatformSMS::tick(bool sysTick) {
           if (chan[i].freq<0) chan[i].freq=0;
         }
       }
-      //if (chan[i].actualNote>153) chan[i].freq=0x01;
       rWrite(0,0x80|i<<5|(chan[i].freq&15));
       rWrite(0,chan[i].freq>>4);
       // what?
@@ -302,7 +301,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     if (!chan[3].rawFreq) {
       if (chan[3].freq>1023) chan[3].freq=1023;
       if (parent->song.compatFlags.snNoLowPeriods) {
-        if (chan[3].actualNote>153) chan[3].freq=0x01;
+        if (chan[3].freq<8) chan[3].freq=0x01;
       }
       if (chan[3].freq<0) chan[3].freq=0;
     }
@@ -326,9 +325,9 @@ void DivPlatformSMS::tick(bool sysTick) {
       unsigned char value;
       // TODO: new arp?
       if (chan[3].std.arp.had && !chan[3].rawFreq) {
-        value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
+        value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%DIV_EDO31_STEPS;
       } else { // pardon?
-        value=chan[3].note%12;
+        value=chan[3].note%DIV_EDO31_STEPS;
       }
       if (value<3) {
         value=2-value;
@@ -576,7 +575,7 @@ bool DivPlatformSMS::getLegacyAlwaysSetVolume() {
 }
 
 int DivPlatformSMS::getPortaFloor(int ch) {
-  return 72;
+  return 0;
 }
 
 void DivPlatformSMS::notifyInsDeletion(void* ins) {

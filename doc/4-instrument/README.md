@@ -164,7 +164,7 @@ under the sequence view there is a bar that allows you to set loop and release p
 arpeggio macros have an additional bar under the sequence view to set steps to "relative" or "fixed":
 - by default, step values are offsets **relative** to the note.
 - if clicked on, a step value becomes **fixed** and will be played at its corresponding note without regard to the currently playing note.
-  - values are counted from `C-0`. for example, a fixed value of 48 produces a `C-4` note.
+  - values are counted from middle C (`C-4`): fixed value 0 produces `C-4`, and fixed value 31 produces `C-5`.
   - fixed values are especially useful for noise or percussion.
 
 the sequence can be edited in the text input field at the very bottom. the following symbols have special meanings:

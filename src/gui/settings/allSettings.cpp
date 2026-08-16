@@ -365,9 +365,9 @@ void FurnaceGUI::initSettings() {
                 if (e->curSubSong->pat[i].data[j]!=NULL) {
                   DivPattern* p=e->curSubSong->pat[i].data[j];
                   for (int k=0; k<DIV_MAX_ROWS; k++) {
-                    if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<180) {
-                      int newNote=((6+p->newData[k][DIV_PAT_NOTE])/12)*12;
-                      p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,0,168);
+                    if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<DIV_EDO31_NOTE_COUNT) {
+                      int newNote=((DIV_EDO31_STEPS/2+p->newData[k][DIV_PAT_NOTE])/DIV_EDO31_STEPS)*DIV_EDO31_STEPS;
+                      p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,0,DIV_EDO31_STEPS*(DIV_EDO31_MAX_SLOT/DIV_EDO31_STEPS));
                     }
                   }
                 }
@@ -1348,10 +1348,7 @@ void FurnaceGUI::initSettings() {
             if (bind.data1==128) {
               snprintf(bindID,1024,_("Any"));
             } else {
-              const char* nName="???";
-              if ((bind.data1+2)>0 && (bind.data1+2)<180) {
-                nName=noteNames[bind.data1+2];
-              }
+              const char* nName=noteNames[edo31MidiToSlot(bind.data1)];
               snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,nName);
             }
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1361,10 +1358,7 @@ void FurnaceGUI::initSettings() {
                 ret=true;
               }
               for (int j=0; j<128; j++) {
-                const char* nName="???";
-                if ((j+2)>0 && (j+2)<180) {
-                  nName=noteNames[j+2];
-                }
+                const char* nName=noteNames[edo31MidiToSlot(j)];
                 snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,nName,j);
                 if (ImGui::Selectable(bindID,bind.data1==j)) {
                   bind.data1=j;

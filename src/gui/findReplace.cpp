@@ -59,7 +59,7 @@ bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false)
       return (val>=arg && val<=argMax);
       break;
     case GUI_QUERY_RANGE_NOT:
-      return (val!=emptyVal && (val<arg || val>argMax) && (!noteMode || val<120));
+      return (val!=emptyVal && (val<arg || val>argMax) && (!noteMode || val<DIV_EDO31_NOTE_COUNT));
       break;
     case GUI_QUERY_ANY:
       return (val!=emptyVal);

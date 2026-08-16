@@ -43,7 +43,7 @@ these apply to each operator:
 ![FM ADSR chart](FM-ADSRchart.png)
 
 - **Envelope Scale (RS/KS)**: also known as "Rate Scale" or "Key Scale". determines the degree to which the envelope execution speed increases according to the pitch (0 to 3).
-- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). the values follow the harmonic scale. for example, 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave 7 semitones, and so on.
+- **Frequency Multiplier (MULT)**: sets the coarse pitch offset in relation to the note (0 to 15). the values follow the harmonic scale. for example, 0 is -1 octave, 1 is 0 octaves, 2 is 1 octave, 3 is 1 octave plus a perfect fifth, and so on.
 - **Fine Frequency Multiplier (Fine)**: a fine control for MULT.
 - **Envelope Generator Shift (EGS)**: adds a "handicap" to the envelope. in other words, the minimum volume of the operator.
   - 0: no change
@@ -93,7 +93,7 @@ most parameters are listed above.
 
 ## Macros
 
-- **Arpeggio**: pitch change sequence in semitones.
+- **Arpeggio**: pitch change sequence in 31-EDO steps.
 - **Noise Frequency**: specifies the noise frequency.
   - this only applies to operator 4 of channel 8!
 - **Panning**: toggles output on left and right channels.

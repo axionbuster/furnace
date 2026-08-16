@@ -363,7 +363,7 @@ int DivPlatformMultiPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -557,7 +557,7 @@ void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformMultiPCM::getPortaFloor(int ch) {
-  return 60;
+  return 0;
 }
 
 void DivPlatformMultiPCM::setFlags(const DivConfig& flags) {

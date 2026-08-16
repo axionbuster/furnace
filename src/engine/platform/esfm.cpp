@@ -289,7 +289,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           chan[i].freqChanged=true;
         }
       } else {
-        chan[i].handleArpFmOp(60, o);
+        chan[i].handleArpFmOp(DIV_EDO31_MIDDLE_C, o);
         chan[i].handlePitchFmOp(o);
       }
 

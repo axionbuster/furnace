@@ -425,13 +425,13 @@ these files are not distributed with Furnace as they are under copyright. you sh
   - **Decimal**
   - **Hexadecimal**
 - **Single-digit effects for 00-0F**
-- **Use flats instead of sharps**
-- **Use German notation**: display `B` notes as `H`, and `A#` notes as `B`.
+- **Use flats instead of sharps**: retained for settings compatibility, but has no effect in this fork because each 31-EDO slot has one canonical spelling.
+- **Use German notation**: retained for settings compatibility, but has no effect in this fork because `B`, `Bb`, and `A#` are distinct pitches.
 #### Pattern view labels
-- **Note off (3-char)**: default is `OFF`
-- **Note release (3-char)**: default is `===`.
-- **Macro release (3-char)**: default is `REL`.
-- **Empty field (3-char)**: default is `...`.
+- **Note off (4-char)**: default is `OFF`.
+- **Note release (4-char)**: default is `===`.
+- **Macro release (4-char)**: default is `REL`.
+- **Empty field (4-char)**: default is `...`.
 - **Empty field (2-char)**: default is `..`.
 #### Pattern view spacing after:
 - these set the number of pixels of space between columns.
@@ -614,7 +614,7 @@ the settings for note input keybinds operate differently. each entry in the list
 - **Key**: key assignment.
 - **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", "Macro release", and "Toggle raw note".
   - note: the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
-- **Value**: number of semitones above C at the current octave. only appears for note type binds.
+- **Value**: number of 31-EDO steps above C at the current octave. only appears for note type binds.
 - **Remove**: removes the keybind from the list.
 
 below all the binds, select a key from the dropdown list to add it. it will appear at or near the top of the list as a note with value 0.

@@ -368,7 +368,7 @@ void DivPlatformNES::tick(bool sysTick) {
           int ntPos=chan[i].baseFreq-60;
           if (NEW_ARP_STRAT) {
             if (chan[i].fixedArp) {
-              ntPos=chan[i].baseNoteOverride-60;
+              ntPos=chan[i].baseNoteOverride-DIV_EDO31_MIDDLE_C;
             } else {
               ntPos+=chan[i].arpOff;
             }

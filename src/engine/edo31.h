@@ -35,6 +35,8 @@
 #include <cmath>
 
 #define DIV_EDO31_STEPS 31
+#define DIV_EDO31_NOTE_COUNT 180
+#define DIV_EDO31_MAX_SLOT (DIV_EDO31_NOTE_COUNT-1)
 #define DIV_EDO31_MIDDLE_C 62
 #define DIV_EDO31_A4 85
 #define DIV_EDO31_A_STEP (DIV_EDO31_A4%DIV_EDO31_STEPS)
@@ -131,7 +133,7 @@ static inline void edo31FormatNote(int slot, char* out) {
 static inline int edo31MidiToSlot(int midiNote) {
   int slot=midiNote+(DIV_EDO31_MIDDLE_C-60);
   if (slot<0) slot=0;
-  if (slot>179) slot=179;
+  if (slot>DIV_EDO31_MAX_SLOT) slot=DIV_EDO31_MAX_SLOT;
   return slot;
 }
 

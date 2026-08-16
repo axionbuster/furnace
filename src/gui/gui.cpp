@@ -3700,7 +3700,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     ImGui::TableNextRow(); \
     ImGui::TableNextColumn(); \
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
-    if (ImGui::Selectable(m.note?"C-4##opMaskNote":"---##opMaskNote",m.note,ImGuiSelectableFlags_DontClosePopups)) { \
+    if (ImGui::Selectable(m.note?"C-4 ##opMaskNote":"--- ##opMaskNote",m.note,ImGuiSelectableFlags_DontClosePopups)) { \
       m.note=!m.note; \
     } \
     ImGui::PopStyleColor(); \
@@ -3838,7 +3838,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-    ImGui::Text("C-4");
+    ImGui::TextUnformatted("C-4 ");
     ImGui::PopStyleColor();
     ImGui::TableNextColumn();
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
@@ -3946,9 +3946,9 @@ void FurnaceGUI::editOptions(bool topMenu) {
   ImGui::Text(_("transpose"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
-  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,31)) {
-    if (transposeAmount<-96) transposeAmount=-96;
-    if (transposeAmount>96) transposeAmount=96;
+  if (ImGui::InputInt("##TransposeAmount",&transposeAmount,1,DIV_EDO31_STEPS)) {
+    if (transposeAmount<-DIV_EDO31_MAX_SLOT) transposeAmount=-DIV_EDO31_MAX_SLOT;
+    if (transposeAmount>DIV_EDO31_MAX_SLOT) transposeAmount=DIV_EDO31_MAX_SLOT;
   }
   ImGui::SameLine();
   if (ImGui::Button(_("Notes"))) {
@@ -9808,10 +9808,10 @@ FurnaceGUI::FurnaceGUI():
   supportsMP3(false),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
-  wavePreviewNote(0),
+  wavePreviewNote(DIV_EDO31_MIDDLE_C),
   samplePreviewOn(false),
   samplePreviewKey((SDL_Scancode)0),
-  samplePreviewNote(0),
+  samplePreviewNote(DIV_EDO31_MIDDLE_C),
   sampleMapSelStart(-1),
   sampleMapSelEnd(-1),
   sampleMapDigit(0),

@@ -27,7 +27,7 @@ however, effects are continuous (unless specified), which means you only need to
 
 ## pitch
 
-- `E5xx`: **Set pitch.** `00` is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
+- `E5xx`: **Set pitch.** `00` is -1 31-EDO step, `80` is base pitch, `FF` is nearly +1 step.
 - `01xx`: **Pitch slide up.**
 - `02xx`: **Pitch slide down.**
 - `F1xx`: **Single tick pitch up.**
@@ -36,21 +36,21 @@ however, effects are continuous (unless specified), which means you only need to
 - `03xx`: **Portamento.** slides the currently playing note's pitch toward the new note. `x` is the slide speed.
   - a note _must_ be present with this effect for it to work.
   - the effect stops automatically when it reaches the new note.
-- `E1xy`: **Note slide up.** `x` is the speed, while `y` is how many semitones to slide up.
-- `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
+- `E1xy`: **Note slide up.** `x` is the speed, while `y` is how many 31-EDO steps to slide up.
+- `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many 31-EDO steps to slide down.
   - ---
 - `EAxx`: **Toggle legato.** while on, new notes instantly change the pitch of the currently playing sound instead of starting it over.
-- `E6xy`: **Quick legato (compatibility).** transposes note by `y` semitones after `x` ticks.
+- `E6xy`: **Quick legato (compatibility).** transposes the note by `y` 31-EDO steps after `x` ticks.
   - if `x` is between 0 and 7, it transposes up.
   - if `x` is between 8 and F, it transposes down.
-- `E8xy`: **Quick legato up**. transposes note up by `y` semitones after `x` ticks.
-- `E9xy`: **Quick legato down**. transposes note down by `y` semitones after `x` ticks.
-- `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` semitones and the note plus `y` semitones.
-  - as an example, start with a chord of C-3, G-3, and D#4. the G-3 and D#4 are 7 and 15 semitones higher than the root note, so the corresponding effect is `007F`.
+- `E8xy`: **Quick legato up**. transposes the note up by `y` 31-EDO steps after `x` ticks.
+- `E9xy`: **Quick legato down**. transposes the note down by `y` 31-EDO steps after `x` ticks.
+- `00xy`: **Arpeggio.** this effect produces a rapid cycle between the current note, the note plus `x` 31-EDO steps, and the note plus `y` 31-EDO steps.
+  - each offset is a hexadecimal nibble and is therefore limited to 0–15 steps. a 31-EDO perfect fifth is 18 steps, so this compact effect cannot currently express a fifth or wider interval.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
   - ---
 - `04xy`: **Vibrato.** makes the pitch oscillate. `x` is the speed, while `y` is the depth.
-  - maximum vibrato depth is ±1 semitone.
+  - maximum vibrato depth is ±1 31-EDO step (about 38.71 cents).
 - `E3xx`: **Set vibrato shape.** `xx` may be one of the following:
   - `00`: sine (default)
   - `01`: sine (upper portion only)
@@ -64,7 +64,7 @@ however, effects are continuous (unless specified), which means you only need to
   - `09`: square (down)
   - `0a`: half sine (up)
   - `0b`: half sine (down)
-- `E4xx`: **Set vibrato range** in 1/16th of a semitone. 
+- `E4xx`: **Set vibrato range** in 1/16th of a 31-EDO step.
 
 ## panning
 

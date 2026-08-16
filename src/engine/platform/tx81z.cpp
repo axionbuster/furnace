@@ -330,7 +330,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
         if (op.egt) {
           if (op.sus) {
-            chan[i].handleArpFmOp(freqChangeOp,60,j); // arp and pitch macros
+            chan[i].handleArpFmOp(freqChangeOp,DIV_EDO31_MIDDLE_C,j); // arp and pitch macros
             chan[i].handlePitchFmOp(freqChangeOp,j);
           } else {
             if (m.ssg.had) { // block and f-num macros

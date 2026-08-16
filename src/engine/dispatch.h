@@ -481,10 +481,10 @@ struct SharedChannel {
   // baseNoteOverride: set when the arp macro's value is fixed. in that case, fixedArp will be true.
   // pitch: the pitch offset. set on DIV_CMD_PITCH (calculated from current E5xx and vibrato state).
   // pitch2: pitch macro's output.
-  // arpOff: the arp macro's value (relative), in semitones.
+  // arpOff: the arp macro's value (relative), in 31-EDO steps.
   int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
   // ins: current instrument. -1 is none/default.
-  // note: current note, in semitones. 0 is C-(-5) and 60 is C-0.
+  // note: current note, in 31-EDO steps. 0 is C-2, 62 is middle C (C-4), and 85 is A-4.
   // sampleNote: note in sample map.
   // sampleNoteDelta: difference between note and sampleNote, used in arp calculation, legato and pitch slides.
   int ins, note, sampleNote, sampleNoteDelta;
@@ -555,7 +555,7 @@ struct SharedChannel {
     if (std.arp.had) {
       if (std.arp.val<0) {
         if (!(std.arp.val&0x40000000)) {
-          baseNoteOverride=(std.arp.val|0x40000000)+offset+60;
+          baseNoteOverride=(std.arp.val|0x40000000)+offset+DIV_EDO31_MIDDLE_C;
           fixedArp=true;
         } else {
           arpOff=std.arp.val;
@@ -563,7 +563,7 @@ struct SharedChannel {
         }
       } else {
         if (std.arp.val&0x40000000) {
-          baseNoteOverride=(std.arp.val&(~0x40000000))+offset+60;
+          baseNoteOverride=(std.arp.val&(~0x40000000))+offset+DIV_EDO31_MIDDLE_C;
           fixedArp=true;
         } else {
           arpOff=std.arp.val;
@@ -624,7 +624,7 @@ struct SharedChannel {
    */
   SharedChannel(int initVol, bool linear):
     freq(0),
-    baseFreq(linear?0x1e00:0),
+    baseFreq(linear?(DIV_EDO31_MIDDLE_C<<7):0),
     baseNoteOverride(0),
     pitch(0),
     pitch2(0),

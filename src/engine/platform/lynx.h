@@ -101,7 +101,6 @@ class DivPlatformLynx: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     bool getLegacyAlwaysSetVolume();
-    //int getPortaFloor(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);

@@ -102,7 +102,7 @@ in there, you can modify certain data pertaining to your sample, such as the:
   - only appears when applicable.
 - **Hz**: base frequency of sample played at `C-4`.
 - **Note**: note corresponding to Hz.
-- **Fine**: fine tuning. ranges from -64 to 63, which maps from -1 to almost +1 semitone.
+- **Fine**: fine tuning. ranges from -64 to 63, which maps from -1 to almost +1 31-EDO step.
 - **Loop**: enable or disable sample loop. only on supported chips.
 - **Mode**: direction of loop. backward and ping pong loops are only natively available on some chips.
 - **Start**: start of loop. if the sample is on a chip that limits loop points to specific values, hovering over this will highlight them in the editor.

@@ -652,9 +652,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     ds.version=reader.readS();
     logI("module version %d (0x%.2x)",ds.version,ds.version);
 
-    if (variantID!=DIV_FUR_VARIANT_VANILLA) {
+    if (variantID==DIV_FUR_VARIANT_VANILLA) {
+      const char* vanillaWarning="this module uses the unmarked vanilla .fur dialect. it may contain stock 12-EDO data or pre-marker 31-EDO data, so pitch values are loaded without a complete conversion. notes, effects, and macros may be incorrect. save a copy before editing.";
+      logW("%s",vanillaWarning);
+      addWarning(vanillaWarning);
+    } else if (variantID!=DIV_FUR_VARIANT_EDO31) {
       logW("Furnace variant detected: %d",variantID);
       addWarning("this module was created with a downstream version of Furnace. certain features may not be compatible.");
+    } else {
+      logD("Furnace 31-EDO module detected");
     }
 
     if (ds.version>DIV_ENGINE_VERSION) {
@@ -2494,7 +2500,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->init();
   /// HEADER
   // write magic
-  w->write(DIV_FUR_MAGIC,16);
+  w->write(DIV_FUR_MAGIC_DS0,16);
 
   // write version
   w->writeS(DIV_ENGINE_VERSION);
@@ -2505,9 +2511,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   // song info pointer
   w->writeI(32);
 
-  // reserved
-  w->writeI(0);
-  w->writeI(0);
+  // fork dialect tag (reserved in stock Furnace)
+  w->write(DIV_FUR_TAG_EDO31,8);
 
   // high short is channel
   // low short is pattern number
@@ -2944,4 +2949,3 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   saveLock.unlock();
   return w;
 }
-

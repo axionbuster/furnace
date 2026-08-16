@@ -1253,7 +1253,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       chan[c.chan].note=c.value;
-      chan[c.chan].nextNote=chan[c.chan].note+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
+      chan[c.chan].nextNote=chan[c.chan].note+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
       chan[c.chan].noteChanged.note=1;
       break;
     }

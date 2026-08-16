@@ -59,7 +59,7 @@ you may select any of these to replace:
 all of these have the following choices for how they alter matches:
 
 - **set**: changes matched data to this value.
-- **add**: adds this value to matched data. it may be negative for subtraction. notes are calculated in semitones.
+- **add**: adds this value to matched data. it may be negative for subtraction. notes are calculated in 31-EDO steps.
 - **add (overflow)**: as "add" above, but values will wrap around; for example, adding 13 to `FF` will result in `0C`.
 - **scale**: multiply value to this percentage; for example, scaling `1A` by `150` results in `27`. not available for "note".
 - **clear**: erases matched data.

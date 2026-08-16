@@ -136,8 +136,8 @@ Ctrl-C      | copy selection
 Ctrl-V      | paste selection
 Ctrl-Z      | undo
 Ctrl-Y      | redo
-Ctrl-F1     | transpose selection (-1 semitone)
-Ctrl-F2     | transpose selection (+1 semitone)
+Ctrl-F1     | transpose selection (-1 31-EDO step)
+Ctrl-F2     | transpose selection (+1 31-EDO step)
 Ctrl-F3     | transpose selection (-1 octave)
 Ctrl-F4     | transpose selection (+1 octave)
 Space       | toggle note input (edit)

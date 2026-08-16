@@ -135,4 +135,4 @@ the following systems are also supported when saving as 1.1.3+:
 - NES + Konami VRC7
 - Famicom Disk System
 
-only use this option if you really need it. there are many features which DefleMask does not support, such as a variety of effects, FM macros and pitched samples, so these will be lost.
+only use this option if you really need it. DefleMask is a 12-EDO format, so this fork quantizes note slots to the nearest 12-EDO semitone during export (up to about 19.4 cents of error) and collapses distinct 31-EDO spellings onto the same pitch. there are also many features which DefleMask does not support, such as a variety of effects, FM macros and pitched samples, so these will be lost.

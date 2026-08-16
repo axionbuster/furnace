@@ -111,12 +111,14 @@ the header is 32 bytes long.
 ```
 size | description
 -----|------------------------------------
- 16  | "-Furnace module-" format magic
+ 16  | "Furnace-B module" downstream format magic
   2  | format version
   2  | reserved
   4  | song info pointer
-  8  | reserved
+  8  | "FUR31EDO" dialect tag
 ```
+
+this 31-EDO fork writes the downstream magic and dialect tag above. stock Furnace recognizes the magic and warns when opening the file, but ignores the tag and interprets pitch data as 12-EDO. the vanilla magic `-Furnace module-` and eight zero reserved bytes identify unmarked files; this fork accepts them with a warning because stock 12-EDO files cannot be distinguished from 31-EDO files created before the dialect marker.
 
 # song info (>=240)
 
@@ -537,10 +539,9 @@ size | description
   4  | "PATN" block ID
   4  | size of this block
   1  | subsong
-  1  | channel (<240)
-  2  | channel (>=240)
-     | - the channel index was 8-bit in previous versions.
-     | - in order to accommodate higher channel counts, it has been extended to 16-bit.
+  1  | channel
+     | - despite earlier revisions of this paper claiming this became 16-bit in version 240,
+     |   both the reader and writer use one byte in every PATN version.
   2  | pattern index
  STR | pattern name (>=51)
  ??? | pattern data
@@ -577,8 +578,9 @@ size | description
      |   - bit 7: effect value 7 present
      | - then read note, ins, volume, effects and effect values depending on what is present.
      | - for note:
-     |   - 0 is C-(-5)
-     |   - 179 is B-9
+     |   - 0 is C-2 in this fork
+     |   - 179 is Bbb7 in this fork
+     |   - values 0 through 179 are consecutive 31-EDO steps
      |   - 180 is note off
      |   - 181 is note release
      |   - 182 is macro release
@@ -891,6 +893,8 @@ size | description
      |     - 11: B
      |     - 12: C (of next octave)
      |       - this is actually a leftover of the .dmf format.
+     |     - these values describe the legacy 12-EDO representation on disk.
+     |       this fork embeds them onto the nearest 31-EDO slots while loading.
      |     - 100: note off
      |     - 101: note release
      |     - 102: macro release

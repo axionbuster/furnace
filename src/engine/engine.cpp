@@ -52,7 +52,7 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
 const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNull) {
   switch (effect) {
     case 0x00:
-      return _("00xy: Arpeggio (x: semitones; y: semitones)");
+      return _("00xy: Arpeggio (x: 31-EDO steps; y: 31-EDO steps)");
     case 0x01:
       return _("01xx: Pitch slide up (xx: speed)");
     case 0x02:
@@ -111,9 +111,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xe0:
       return _("E0xx: Set arp speed");
     case 0xe1:
-      return _("E1xy: Note slide up (x: speed; y: semitones)");
+      return _("E1xy: Note slide up (x: speed; y: 31-EDO steps)");
     case 0xe2:
-      return _("E2xy: Note slide down (x: speed; y: semitones)");
+      return _("E2xy: Note slide down (x: speed; y: 31-EDO steps)");
     case 0xe3:
       return _("E3xx: Set vibrato shape");
     case 0xe4:
@@ -121,13 +121,13 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xe5:
       return _("E5xx: Set pitch (80: center)");
     case 0xe6:
-      return _("E6xy: Quick legato (x: time (0-7 up; 8-F down); y: semitones)");
+      return _("E6xy: Quick legato (x: time (0-7 up; 8-F down); y: 31-EDO steps)");
     case 0xe7:
       return _("E7xx: Macro release");
     case 0xe8:
-      return _("E8xy: Quick legato up (x: time; y: semitones)");
+      return _("E8xy: Quick legato up (x: time; y: 31-EDO steps)");
     case 0xe9:
-      return _("E9xy: Quick legato down (x: time; y: semitones)");
+      return _("E9xy: Quick legato down (x: time; y: 31-EDO steps)");
     case 0xea:
       return _("EAxx: Legato");
     case 0xec:
@@ -1836,14 +1836,6 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   logV("and landed us at %s (%d ticks, %d:%d.%d)",totalTime.toString(),totalTicksR,curOrder,curRow,ticks);
 }
 
-/*
-int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
-  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
-  return period?
-         round((clock/base)/divider):
-         base*(divider/clock);
-}*/
-
 double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
   if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
@@ -1858,14 +1850,15 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   double tuning=song.tuning; \
   if (tuning<400.0) tuning=400.0; \
   if (tuning>500.0) tuning=500.0; \
-  int boundaryBottom=tuning*pow(2.0,0.25)*(divider/clock); \
-  int boundaryTop=2.0*tuning*pow(2.0,0.25)*(divider/clock); \
+  double boundaryBase=tuning*pow(2.0,(double)(DIV_EDO31_STEPS-DIV_EDO31_A_STEP)/(double)DIV_EDO31_STEPS)*(divider/clock); \
+  int boundaryBottom=boundaryBase; \
+  int boundaryTop=2.0*boundaryBase; \
   while (boundaryTop>((1<<bits)-1)) { \
     boundaryTop>>=1; \
     boundaryBottom>>=1; \
   } \
-  /* 62/31: the block of the 12-EDO note which sounds at the same pitch as this slot */ \
-  int block=((note)+62)/DIV_EDO31_STEPS; \
+  /* slot 0 is C-2, so the middle-C offset aligns it with hardware block 2 */ \
+  int block=((note)+DIV_EDO31_MIDDLE_C)/DIV_EDO31_STEPS; \
   if (block<0) block=0; \
   if (block>7) block=7; \
   bf>>=block; \
@@ -1941,9 +1934,9 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
 
 int DivEngine::calcArp(int note, int arp, int offset) {
   if (arp<0) {
-    if (!(arp&0x40000000)) return (arp|0x40000000)+offset+60;
+    if (!(arp&0x40000000)) return (arp|0x40000000)+offset+DIV_EDO31_MIDDLE_C;
   } else {
-    if (arp&0x40000000) return (arp&(~0x40000000))+offset+60;
+    if (arp&0x40000000) return (arp&(~0x40000000))+offset+DIV_EDO31_MIDDLE_C;
   }
   return note+arp;
 }
@@ -2313,8 +2306,8 @@ short DivEngine::splitNoteToNote(short note, short octave) {
     int seek=DIV_EDO31_MIDDLE_C+(int)round((double)((note+(signed char)octave*12)+60-108)*(double)DIV_EDO31_STEPS/12.0);
     if (seek<0) {
       return 0;
-    } else if (seek>179) {
-      return 179;
+    } else if (seek>DIV_EDO31_MAX_SLOT) {
+      return DIV_EDO31_MAX_SLOT;
     } else {
       return seek;
     }

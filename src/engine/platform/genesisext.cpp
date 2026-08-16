@@ -897,7 +897,7 @@ unsigned int DivPlatformGenesisExt::getMaxFreq(int ch) {
 }
 
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
-  return (ch>8)?72:60;
+  return 0;
 }
 
 void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {

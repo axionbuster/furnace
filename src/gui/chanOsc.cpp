@@ -910,9 +910,9 @@ void FurnaceGUI::drawChanOsc() {
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL) {
-                          text+="---";
+                          text+="--- ";
                         } else if (!chanState->keyOn) {
-                          text+="---";
+                          text+="--- ";
                         } else {
                           // no more conversion necessary after the note/octave unification :>
                           text+=fmt::sprintf("%s",noteName(chanState->note));

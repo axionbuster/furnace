@@ -58,10 +58,12 @@ struct NotZlibException {
 #define DIV_TFM_MAGIC "TFMfmtV2"
 
 #define DIV_FUR_MAGIC_DS0 "Furnace-B module"
+#define DIV_FUR_TAG_EDO31 "FUR31EDO"
 
 enum DivFurVariants: int {
   DIV_FUR_VARIANT_VANILLA=0,
   DIV_FUR_VARIANT_B=1,
+  DIV_FUR_VARIANT_EDO31=2,
 };
 
 // MIDI-related

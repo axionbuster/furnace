@@ -2384,7 +2384,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].baseFreq=(PCM_CHECK(c.chan))?chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0))):
+      chan[c.chan].baseFreq=(PCM_CHECK(c.chan))?chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0))):
           (c.chan==adpcmChan)?(chan[c.chan].calcBaseFreq(c.value)):(chan[c.chan].calcBaseFreq(c.value));
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
@@ -3272,7 +3272,7 @@ void DivPlatformOPL::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformOPL::getPortaFloor(int ch) {
-  return (ch>5)?72:60;
+  return 0;
 }
 
 void DivPlatformOPL::setCore(unsigned char which) {

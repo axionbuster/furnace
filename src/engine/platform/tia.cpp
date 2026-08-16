@@ -231,7 +231,7 @@ void DivPlatformTIA::tick(bool sysTick) {
           }
         }
       } else if (chan[i].fixedArp) {
-        chan[i].freq=(chan[i].baseNoteOverride-60)&31;
+        chan[i].freq=(chan[i].baseNoteOverride-DIV_EDO31_MIDDLE_C)&31;
         chan[i].tuneFreq=0;
         if (!skipRegisterWrites && dumpWrites) {
           addWrite(0xfffe0000+i,chan[i].freq*256);

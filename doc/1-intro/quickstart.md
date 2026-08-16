@@ -26,9 +26,7 @@ click to place the cursor somewhere in this view. it will appear as a medium-blu
 
 now try the left and right arrow keys to move between columns. pressing `Home` or `End` twice will shuttle you to the first or last column, respectively. when you're done, hit `Home` twice to return to the top-left.
 
-let's play a little! notes are arranged on the keyboard rather like a piano. start with the bottom row of letters (`ZXCVBNM`). they should sound out the notes of the C major scale, like the piano's white keys. above that, we have the accidentals where the piano's black keys would be expected (`SD GHJ`). play with these, then move two rows up to find the same arrangement but one octave higher (white keys on `QWERTYU`, black keys on `23 567`). these rows also extend a little further to the right into the next octave.
-
-![keyboard note entry](../3-pattern/keyboard.png)
+let's play a little! this fork lays consecutive 31-EDO steps across three keyboard rows. `ZXCVBNM,./` plays steps 0–9 of the current octave, `ASDFGHJKL;'` continues with steps 10–20, and `QWERTYUIOP` completes the octave with steps 21–30. `[` starts the next octave; `]` and `2` both play its second step, and the rest of the number row continues upward (`1` remains the note-off key). unlike stock Furnace, these are chromatic runs rather than piano-style white and black keys; the exact bindings are listed in the [31-EDO guide](../31-edo.md#qwerty-chromatic-rows).
 
 to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard documentation](../2-interface/keyboard.md) explains how.) as an alternative, there's an octave selector at the top of the interface, a third of the way in from the left.
 

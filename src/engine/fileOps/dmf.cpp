@@ -1222,6 +1222,18 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 // fork note slot has to be folded back to the nearest 12-EDO pitch on export.
 // this stays lossy (up to ~19 cents of quantization), but it keeps the written
 // fields inside the range the format allows.
+static int dmfNoteToTwelveEDOSlot(short note) {
+  // Stock calibration puts A-4 at slot 117. The 0..179 clamp is part of the
+  // external 12-EDO format's note range, not the fork's native slot range.
+  int slot12=117+(int)round((double)(note-DIV_EDO31_A4)*12.0/(double)DIV_EDO31_STEPS);
+  return CLAMP(slot12,0,179);
+}
+
+static int dmfTwelveEDOSlotToNote(int slot12) {
+  int note=DIV_EDO31_A4+(int)round((double)(slot12-117)*(double)DIV_EDO31_STEPS/12.0);
+  return CLAMP(note,0,DIV_EDO31_MAX_SLOT);
+}
+
 static void dmfNoteToSplitNote(short note, short& outNote, short& outOctave) {
   switch (note) {
     case DIV_NOTE_OFF:
@@ -1246,10 +1258,7 @@ static void dmfNoteToSplitNote(short note, short& outNote, short& outOctave) {
       outOctave=0;
       break;
     default: {
-      // pitch-equivalent 12-EDO slot (stock calibration puts A-4 at slot 117)
-      int slot12=117+(int)round((double)(note-DIV_EDO31_A4)*12.0/(double)DIV_EDO31_STEPS);
-      if (slot12<0) slot12=0;
-      if (slot12>179) slot12=179;
+      int slot12=dmfNoteToTwelveEDOSlot(note);
       outNote=slot12%12;
       outOctave=(unsigned char)(slot12-60)/12;
       if (outNote==0) {
@@ -1462,6 +1471,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   if (song.tuning<439.99 || song.tuning>440.01) {
     addWarning(".dmf format does not support tuning");
   }
+
+  addWarning(".dmf export quantizes 31-EDO notes to the nearest 12-EDO pitch");
 
   if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
     addWarning("absolute duty/cutoff macro not available in .dmf!");
@@ -1818,12 +1829,18 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
                 if (convInsInst->amiga.useNoteMap) {
                   int mapTarget=pat->newData[k][DIV_PAT_NOTE];
                   if (mapTarget<0) mapTarget=0;
-                  if (mapTarget>179) mapTarget=179;
+                  if (mapTarget>DIV_EDO31_MAX_SLOT) mapTarget=DIV_EDO31_MAX_SLOT;
+                  int slot12=dmfNoteToTwelveEDOSlot(pat->newData[k][DIV_PAT_NOTE]);
                   insertEBxx=convInsInst->amiga.noteMap[mapTarget].map/12;
-                  pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.noteMap[mapTarget].map%12);
+                  pat->newData[k][DIV_PAT_NOTE]=dmfTwelveEDOSlotToNote(
+                    (12*(slot12/12))+(convInsInst->amiga.noteMap[mapTarget].map%12)
+                  );
                 } else {
+                  int slot12=dmfNoteToTwelveEDOSlot(pat->newData[k][DIV_PAT_NOTE]);
                   insertEBxx=convInsInst->amiga.initSample/12;
-                  pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.initSample%12);
+                  pat->newData[k][DIV_PAT_NOTE]=dmfTwelveEDOSlotToNote(
+                    (12*(slot12/12))+(convInsInst->amiga.initSample%12)
+                  );
                 }
               }
             }

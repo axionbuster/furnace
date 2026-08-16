@@ -25,8 +25,9 @@
 #include "sound/ymfm/ymfm_opn.h"
 
 #define PLEASE_HELP_ME(_targetChan,blk) \
-  int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,60,false); \
-  int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,72,false); \
+  double boundaryBase=parent->song.tuning*pow(2.0,(double)(DIV_EDO31_STEPS-DIV_EDO31_A_STEP)/(double)DIV_EDO31_STEPS)*(CHIP_FREQBASE/chipClock); \
+  int boundaryBottom=boundaryBase; \
+  int boundaryTop=2.0*boundaryBase; \
   int destFreq=NOTE_FNUM_BLOCK(c.value2,11,blk); \
   int newFreq; \
   bool return2=false; \

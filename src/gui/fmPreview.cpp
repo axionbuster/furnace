@@ -386,7 +386,7 @@ void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivIns
       } else {
         // perform detune calculation
         int offset=(opE.ct<<7)+opE.dt;
-        double fbase=(mult0?2048.0:1024.0)*pow(2.0,(float)offset/(128.0*12.0));
+        double fbase=(mult0?2048.0:1024.0)*pow(2.0,(float)offset/(128.0*DIV_EDO31_STEPS));
         int bf=round(fbase);
         int block=0;
         if (bf>0x3ff) {
