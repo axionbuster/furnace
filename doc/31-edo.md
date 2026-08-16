@@ -58,7 +58,7 @@ this is a hard change from stock Furnace, which uses a fixed 3-byte note field (
 
 ## MIDI convention
 
-MIDI input and output use consecutive MIDI note numbers as consecutive 31-EDO steps, not as 12-EDO semitones. the mapping is anchored so MIDI note 60 is slot 62 (`C-4`): within the unclamped range, MIDI note *n* maps to slot *n*+2. this is deliberately compatible with the Lumatone/Terpstra-style microtonal MIDI convention used by tools such as LatticeKeys.
+MIDI input and output use consecutive MIDI note numbers as consecutive 31-EDO steps, not as 12-EDO semitones. the mapping is anchored so MIDI note 60 is slot 62 (`C-4`): within the unclamped range, MIDI note *n* maps to slot *n*+2. this deliberately follows the Lumatone/Terpstra-style microtonal MIDI convention.
 
 practically: an external 31-EDO MIDI controller using this convention plays in tune against this fork out of the box. an ordinary 12-EDO MIDI keyboard or DAW, which does not know about this convention, will produce a 31-EDO scale that does not match the pitches printed on its keys. MIDI output cannot represent the full 180-slot range: slots above 129 all clamp to MIDI note 127, and the lowest two slots clamp to MIDI note 0.
 
@@ -80,7 +80,7 @@ the default computer-keyboard note-entry layout is chromatic, not isomorphic. th
 
 ## Terpstra Keyboard window
 
-the Terpstra Keyboard window (opened from the window menu, alongside the piano and other visualizers) is an isomorphic hexagonal note-entry surface modeled on Terpstra/LatticeKeys-style keyboards. each hexagonal cell is one slot; the hex grid's two axes correspond to fixed pitch intervals, so a given fingering shape produces the same interval anywhere on the grid — the defining property of an isomorphic layout, which the flat QWERTY rows above cannot offer.
+the Terpstra Keyboard window (opened from the window menu, alongside the piano and other visualizers) is an isomorphic hexagonal note-entry surface modeled on Terpstra-style keyboards. each hexagonal cell is one slot; the hex grid's two axes correspond to fixed pitch intervals, so a given fingering shape produces the same interval anywhere on the grid — the defining property of an isomorphic layout, which the flat QWERTY rows above cannot offer.
 
 each hex displays:
 

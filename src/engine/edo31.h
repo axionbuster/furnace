@@ -128,7 +128,7 @@ static inline void edo31FormatNote(int slot, char* out) {
   out[4]=0;
 }
 
-// MIDI convention (LatticeKeys interop): MIDI note number is a 31-EDO step
+// MIDI convention: each consecutive MIDI note number is one 31-EDO step
 // index with middle C at MIDI 60.
 static inline int edo31MidiToSlot(int midiNote) {
   int slot=midiNote+(DIV_EDO31_MIDDLE_C-60);
