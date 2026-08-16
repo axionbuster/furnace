@@ -1368,9 +1368,14 @@ else()
 endif()
 
 if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
+  set(FURNACE_ICON_FILE ${CMAKE_SOURCE_DIR}/res/icon.icns)
+  set_source_files_properties(${FURNACE_ICON_FILE} PROPERTIES
+    MACOSX_PACKAGE_LOCATION Resources)
+  target_sources(${FURNACE} PRIVATE ${FURNACE_ICON_FILE})
   set_target_properties(${FURNACE} PROPERTIES
     MACOSX_BUNDLE True
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist)
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/Info.plist
+    MACOSX_BUNDLE_ICON_FILE icon.icns)
 endif()
 
 target_include_directories(${FURNACE} SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
