@@ -44,8 +44,6 @@ static const ImU32 terpstraTextColor[5]={
   TERPSTRA_TEXT_DARK
 };
 
-#define TERPSTRA_PRESSED IM_COL32(0x3f,0xd9,0x42,0xff)
-#define TERPSTRA_OCTAVE_ECHO IM_COL32(0x55,0xff,0x55,0x4d)
 #define TERPSTRA_OUT_OF_RANGE IM_COL32(0x40,0x40,0x40,0x40)
 #define TERPSTRA_OUTLINE IM_COL32(0x10,0x10,0x10,0xff)
 #define TERPSTRA_BADGE IM_COL32(0x1c,0x1c,0x1c,0xd0)
@@ -379,14 +377,40 @@ void FurnaceGUI::drawTerpstra() {
 
       bool physicalKeyPressed[180];
       bool pitchClassPressed[31];
+      int inputChannel[180];
+      int pitchClassChannel[31];
+      size_t inputAge[180];
       memset(physicalKeyPressed,0,sizeof(physicalKeyPressed));
       memset(pitchClassPressed,0,sizeof(pitchClassPressed));
+      memset(inputChannel,-1,sizeof(inputChannel));
+      memset(pitchClassChannel,-1,sizeof(pitchClassChannel));
+      memset(inputAge,0,sizeof(inputAge));
       for (int i=0; i<SDL_NUM_SCANCODES; i++) {
         int note=terpstraPreviewNote[i];
         if (note>=0 && note<180) physicalKeyPressed[note]=true;
       }
+
+      // Resolve a held preview note back to the actual channel selected by
+      // autoNoteOn(). This keeps the visual correct when polyphonic preview
+      // routes away from the cursor channel as well as in mono mode.
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        DivChannelState* chanState=e->getChanState(i);
+        if (chanState==NULL || chanState->midiNote<0 || chanState->midiNote>=180) continue;
+        int note=chanState->midiNote;
+        if (inputChannel[note]<0 || chanState->midiAge>=inputAge[note]) {
+          inputChannel[note]=i;
+          inputAge[note]=chanState->midiAge;
+        }
+      }
       for (int note=0; note<180; note++) {
-        if (terpstraKeyPressed[note] || physicalKeyPressed[note]) pitchClassPressed[note%31]=true;
+        if (terpstraKeyPressed[note] || physicalKeyPressed[note]) {
+          int inputChan=inputChannel[note];
+          if (inputChan<0 && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
+            inputChan=cursor.xCoarse;
+          }
+          pitchClassPressed[note%31]=true;
+          pitchClassChannel[note%31]=inputChan;
+        }
       }
 
       // Unlike the piano's configurable trigger/volume feedback, the
@@ -406,6 +430,13 @@ void FurnaceGUI::drawTerpstra() {
           }
         }
       }
+
+      auto highlightColor=[this](int channel) {
+        if (terpstraColorMode==1 && channel>=0 && channel<e->getTotalChannelCount()) {
+          return channelColor(channel);
+        }
+        return terpstraColor;
+      };
 
       // hexagon outline, rotated with the lattice
       ImVec2 vertex[6];
@@ -450,39 +481,43 @@ void FurnaceGUI::drawTerpstra() {
           }
 
           ImU32 fill=TERPSTRA_OUT_OF_RANGE;
-          ImU32 playbackTextColor=TERPSTRA_TEXT_DARK;
+          ImU32 highlightTextColor=TERPSTRA_TEXT_DARK;
           bool pressed=false;
           bool octaveEcho=false;
-          bool playbackLit=false;
+          bool highlighted=false;
           if (inRange) {
             pressed=terpstraKeyPressed[note] || physicalKeyPressed[note];
             octaveEcho=!pressed && pitchClassPressed[note%31];
-            fill=pressed?TERPSTRA_PRESSED:terpstraFill[edo31Class[note%31]];
-            int hitChan=playbackChannel[note];
-            if (!pressed && hitChan>=0) {
+            fill=terpstraFill[edo31Class[note%31]];
+            int hitChan=pressed?inputChannel[note]:playbackChannel[note];
+            if (pressed && hitChan<0 && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
+              hitChan=cursor.xCoarse;
+            }
+            if (pressed || hitChan>=0) {
               ImVec4 baseColor=ImGui::ColorConvertU32ToFloat4(fill);
-              ImVec4 hitColor=terpstraColor;
-              if (terpstraColorMode==1 && hitChan>=0 && hitChan<e->getTotalChannelCount()) {
-                hitColor=channelColor(hitChan);
-              }
+              ImVec4 hitColor=highlightColor(hitChan);
               float mix=hitColor.w;
               baseColor.x+=(hitColor.x-baseColor.x)*mix;
               baseColor.y+=(hitColor.y-baseColor.y)*mix;
               baseColor.z+=(hitColor.z-baseColor.z)*mix;
               fill=ImGui::ColorConvertFloat4ToU32(baseColor);
               float luminance=baseColor.x*0.299f+baseColor.y*0.587f+baseColor.z*0.114f;
-              playbackTextColor=(luminance>0.55f)?TERPSTRA_TEXT_DARK:TERPSTRA_TEXT_LIGHT;
-              playbackLit=true;
+              highlightTextColor=(luminance>0.55f)?TERPSTRA_TEXT_DARK:TERPSTRA_TEXT_LIGHT;
+              highlighted=true;
             }
           }
           dl->AddConvexPolyFilled(points,6,fill);
-          if (octaveEcho) dl->AddConvexPolyFilled(points,6,TERPSTRA_OCTAVE_ECHO);
+          if (octaveEcho) {
+            ImVec4 echoColor=highlightColor(pitchClassChannel[note%31]);
+            echoColor.w*=0.3f;
+            dl->AddConvexPolyFilled(points,6,ImGui::ColorConvertFloat4ToU32(echoColor));
+          }
           dl->AddPolyline(points,6,TERPSTRA_OUTLINE,ImDrawFlags_Closed,dpiScale);
 
           if (!inRange) continue;
           if (!labels) continue;
 
-          ImU32 textColor=pressed?TERPSTRA_TEXT_DARK:(playbackLit?playbackTextColor:terpstraTextColor[edo31Class[note%31]]);
+          ImU32 textColor=highlighted?highlightTextColor:terpstraTextColor[edo31Class[note%31]];
 
           const char* stepName=edo31Names[note%31];
           if (edo31Class[note%31]==DIV_EDO31_DFLAT) {
@@ -541,6 +576,7 @@ void FurnaceGUI::drawTerpstra() {
       int note=i;
       if (terpstraKeyPressed[i]) {
         if (terpstraKeyPressed[i]!=oldTerpstraKeyPressed[i]) {
+          e->setMidiBaseChan(cursor.xCoarse);
           e->synchronized([this,note]() {
             if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
           });
