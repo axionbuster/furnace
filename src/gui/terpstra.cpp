@@ -58,6 +58,8 @@ static const ImU32 terpstraTextColor[5]={
 #define TERPSTRA_OCTAVES_VISIBLE 2.65f
 #define TERPSTRA_MIN_ZOOM 0.3f
 #define TERPSTRA_MAX_ZOOM 5.0f
+// how much of the highlight an octave echo carries
+#define TERPSTRA_ECHO_STRENGTH 0.3f
 
 // nearest hex center of a fractional axial coordinate (cube rounding)
 static void terpstraRound(float q, float r, int& outQ, int& outR) {
@@ -376,14 +378,10 @@ void FurnaceGUI::drawTerpstra() {
       }
 
       bool physicalKeyPressed[180];
-      bool pitchClassPressed[31];
       int inputChannel[180];
-      int pitchClassChannel[31];
       size_t inputAge[180];
       memset(physicalKeyPressed,0,sizeof(physicalKeyPressed));
-      memset(pitchClassPressed,0,sizeof(pitchClassPressed));
       memset(inputChannel,-1,sizeof(inputChannel));
-      memset(pitchClassChannel,-1,sizeof(pitchClassChannel));
       memset(inputAge,0,sizeof(inputAge));
       for (int i=0; i<SDL_NUM_SCANCODES; i++) {
         int note=terpstraPreviewNote[i];
@@ -400,16 +398,6 @@ void FurnaceGUI::drawTerpstra() {
         if (inputChannel[note]<0 || chanState->midiAge>=inputAge[note]) {
           inputChannel[note]=i;
           inputAge[note]=chanState->midiAge;
-        }
-      }
-      for (int note=0; note<180; note++) {
-        if (terpstraKeyPressed[note] || physicalKeyPressed[note]) {
-          int inputChan=inputChannel[note];
-          if (inputChan<0 && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
-            inputChan=cursor.xCoarse;
-          }
-          pitchClassPressed[note%31]=true;
-          pitchClassChannel[note%31]=inputChan;
         }
       }
 
@@ -429,6 +417,35 @@ void FurnaceGUI::drawTerpstra() {
             playbackChannel[chanState->note]=i;
           }
         }
+      }
+
+      // which channel lights a cell: a held input note resolves to whichever
+      // channel autoNoteOn() picked, falling back to the cursor channel;
+      // everything else is lit by playback, or not at all.
+      auto pressedAt=[&](int note) {
+        return terpstraKeyPressed[note] || physicalKeyPressed[note];
+      };
+      auto litChannelAt=[&](int note) -> int {
+        if (!pressedAt(note)) return playbackChannel[note];
+        int chan=inputChannel[note];
+        if (chan<0 && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
+          chan=cursor.xCoarse;
+        }
+        return chan;
+      };
+
+      // octave echoes: a lit cell tints the rest of its pitch class, so the
+      // same note in the other octaves stays visible without hunting across
+      // the lattice for it. when a class is lit in several octaves at once
+      // the topmost one supplies the color.
+      bool echoPitchClass[DIV_EDO31_STEPS];
+      int echoChannel[DIV_EDO31_STEPS];
+      memset(echoPitchClass,0,sizeof(echoPitchClass));
+      memset(echoChannel,-1,sizeof(echoChannel));
+      for (int note=0; note<180; note++) {
+        if (!pressedAt(note) && playbackChannel[note]<0) continue;
+        echoPitchClass[note%DIV_EDO31_STEPS]=true;
+        echoChannel[note%DIV_EDO31_STEPS]=litChannelAt(note);
       }
 
       auto highlightColor=[this](int channel) {
@@ -481,43 +498,42 @@ void FurnaceGUI::drawTerpstra() {
           }
 
           ImU32 fill=TERPSTRA_OUT_OF_RANGE;
-          ImU32 highlightTextColor=TERPSTRA_TEXT_DARK;
-          bool pressed=false;
-          bool octaveEcho=false;
-          bool highlighted=false;
+          ImU32 tintTextColor=TERPSTRA_TEXT_DARK;
+          bool tinted=false;
           if (inRange) {
-            pressed=terpstraKeyPressed[note] || physicalKeyPressed[note];
-            octaveEcho=!pressed && pitchClassPressed[note%31];
-            fill=terpstraFill[edo31Class[note%31]];
-            int hitChan=pressed?inputChannel[note]:playbackChannel[note];
-            if (pressed && hitChan<0 && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
-              hitChan=cursor.xCoarse;
+            fill=terpstraFill[edo31Class[note%DIV_EDO31_STEPS]];
+            int hitChan=litChannelAt(note);
+            bool lit=(pressedAt(note) || hitChan>=0);
+            // a cell which is not itself sounding takes a fraction of the
+            // highlight when its pitch class is sounding elsewhere, leaving
+            // the note actually played the brightest cell of its class.
+            ImVec4 hitColor=terpstraColor;
+            float mix=0.0f;
+            if (lit) {
+              hitColor=highlightColor(hitChan);
+              mix=hitColor.w;
+            } else if (echoPitchClass[note%DIV_EDO31_STEPS]) {
+              hitColor=highlightColor(echoChannel[note%DIV_EDO31_STEPS]);
+              mix=hitColor.w*TERPSTRA_ECHO_STRENGTH;
             }
-            if (pressed || hitChan>=0) {
+            if (mix>0.0f) {
               ImVec4 baseColor=ImGui::ColorConvertU32ToFloat4(fill);
-              ImVec4 hitColor=highlightColor(hitChan);
-              float mix=hitColor.w;
               baseColor.x+=(hitColor.x-baseColor.x)*mix;
               baseColor.y+=(hitColor.y-baseColor.y)*mix;
               baseColor.z+=(hitColor.z-baseColor.z)*mix;
               fill=ImGui::ColorConvertFloat4ToU32(baseColor);
               float luminance=baseColor.x*0.299f+baseColor.y*0.587f+baseColor.z*0.114f;
-              highlightTextColor=(luminance>0.55f)?TERPSTRA_TEXT_DARK:TERPSTRA_TEXT_LIGHT;
-              highlighted=true;
+              tintTextColor=(luminance>0.55f)?TERPSTRA_TEXT_DARK:TERPSTRA_TEXT_LIGHT;
+              tinted=true;
             }
           }
           dl->AddConvexPolyFilled(points,6,fill);
-          if (octaveEcho) {
-            ImVec4 echoColor=highlightColor(pitchClassChannel[note%31]);
-            echoColor.w*=0.3f;
-            dl->AddConvexPolyFilled(points,6,ImGui::ColorConvertFloat4ToU32(echoColor));
-          }
           dl->AddPolyline(points,6,TERPSTRA_OUTLINE,ImDrawFlags_Closed,dpiScale);
 
           if (!inRange) continue;
           if (!labels) continue;
 
-          ImU32 textColor=highlighted?highlightTextColor:terpstraTextColor[edo31Class[note%31]];
+          ImU32 textColor=tinted?tintTextColor:terpstraTextColor[edo31Class[note%DIV_EDO31_STEPS]];
 
           // Use the same formatter as the pattern editor so notation changes
           // are reflected here immediately. Pattern names are fixed-width:
@@ -529,7 +545,7 @@ void FurnaceGUI::drawTerpstra() {
             stepName[1]=visibleName[1];
             if (visibleName[2]<'0' || visibleName[2]>'9') stepName[2]=visibleName[2];
           }
-          if (edo31Class[note%31]==DIV_EDO31_DFLAT) {
+          if (edo31Class[note%DIV_EDO31_STEPS]==DIV_EDO31_DFLAT) {
             // the custom accidental is merged into the pattern font at a
             // fixed cell width, so compose it with the UI-font letter here.
             char noteLetter[2]={stepName[0],0};
