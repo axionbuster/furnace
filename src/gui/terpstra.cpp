@@ -329,13 +329,22 @@ void FurnaceGUI::drawTerpstra() {
       if (!isfinite(terpstraPanX)) terpstraPanX=0.0f;
       if (!isfinite(terpstraPanY)) terpstraPanY=0.0f;
       terpstraZoom=CLAMP(terpstraZoom,TERPSTRA_MIN_ZOOM,TERPSTRA_MAX_ZOOM);
-      float maxPanX=size.x*(1.5f+terpstraZoom*0.65f);
-      float maxPanY=size.y*(1.5f+terpstraZoom*0.65f);
-      terpstraPanX=CLAMP(terpstraPanX,-maxPanX,maxPanX);
-      terpstraPanY=CLAMP(terpstraPanY,-maxPanY,maxPanY);
 
       float hexSize=(size.x/(TERPSTRA_OCTAVES_VISIBLE*TERPSTRA_OCTAVE_LEN))*terpstraZoom;
       if (hexSize<2.0f) hexSize=2.0f;
+
+      // pan limits follow the note range. the octave vector lies flat, so
+      // horizontal reach is measured in octaves from middle C: 9 down to the
+      // lattice's low end, about 6 up to its high end. positive X pan moves
+      // toward the low end. either extreme can reach the window center, plus
+      // half a window of headroom.
+      float octavePx=TERPSTRA_OCTAVE_LEN*hexSize;
+      float headroomX=size.x*0.5f;
+      float maxPanRight=((float)DIV_EDO31_MIDDLE_C/(float)DIV_EDO31_STEPS)*octavePx+headroomX;
+      float maxPanLeft=((float)(DIV_EDO31_MAX_SLOT-DIV_EDO31_MIDDLE_C)/(float)DIV_EDO31_STEPS)*octavePx+headroomX;
+      float maxPanY=size.y*(1.5f+terpstraZoom*0.65f);
+      terpstraPanX=CLAMP(terpstraPanX,-maxPanLeft,maxPanRight);
+      terpstraPanY=CLAMP(terpstraPanY,-maxPanY,maxPanY);
       ImVec2 center=ImVec2(
         (rect.Min.x+rect.Max.x)*0.5f+terpstraPanX,
         (rect.Min.y+rect.Max.y)*0.5f+terpstraPanY
