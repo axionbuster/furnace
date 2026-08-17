@@ -2945,7 +2945,7 @@ class FurnaceGUI {
 
   // Terpstra keyboard
   bool terpstraKeyPressed[DIV_EDO31_NOTE_COUNT];
-  int terpstraAnchorQ, terpstraAnchorR, terpstraColorMode;
+  int terpstraColorMode;
   float terpstraPanX, terpstraPanY, terpstraZoom;
   ImVec4 terpstraColor;
   bool terpstraTouchGesture;

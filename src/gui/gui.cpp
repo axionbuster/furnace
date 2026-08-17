@@ -4278,10 +4278,6 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             int key=it->second;
             int num=DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)+key;
 
-            if (curWindowThreadSafe==GUI_WINDOW_TERPSTRA) {
-              num+=5*terpstraAnchorQ+2*terpstraAnchorR;
-            }
-
             if (num<0) num=0; // C-2
             if (num>DIV_EDO31_MAX_SLOT) num=DIV_EDO31_MAX_SLOT; // B#9
 
@@ -9087,11 +9083,7 @@ void FurnaceGUI::syncState() {
   terpstraPanX=e->getConfFloat("terpstraPanX",terpstraPanX);
   terpstraPanY=e->getConfFloat("terpstraPanY",terpstraPanY);
   terpstraZoom=e->getConfFloat("terpstraZoom",terpstraZoom);
-  terpstraAnchorQ=e->getConfInt("terpstraAnchorQ",terpstraAnchorQ);
-  terpstraAnchorR=e->getConfInt("terpstraAnchorR",terpstraAnchorR);
   terpstraColorMode=e->getConfInt("terpstraColorMode",terpstraColorMode);
-  terpstraAnchorQ=CLAMP(terpstraAnchorQ,-128,128);
-  terpstraAnchorR=CLAMP(terpstraAnchorR,-128,128);
   terpstraColorMode=CLAMP(terpstraColorMode,0,1);
   terpstraColor.x=e->getConfFloat("terpstraColorR",terpstraColor.x);
   terpstraColor.y=e->getConfFloat("terpstraColorG",terpstraColor.y);
@@ -9263,8 +9255,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("terpstraPanX",terpstraPanX);
   conf.set("terpstraPanY",terpstraPanY);
   conf.set("terpstraZoom",terpstraZoom);
-  conf.set("terpstraAnchorQ",terpstraAnchorQ);
-  conf.set("terpstraAnchorR",terpstraAnchorR);
   conf.set("terpstraColorMode",terpstraColorMode);
   conf.set("terpstraColorR",terpstraColor.x);
   conf.set("terpstraColorG",terpstraColor.y);
@@ -9973,8 +9963,6 @@ FurnaceGUI::FurnaceGUI():
   fpCueInputFailed(false),
   fpCueInputFailReason(""),
   followLog(true),
-  terpstraAnchorQ(0),
-  terpstraAnchorR(0),
   terpstraColorMode(1),
   terpstraPanX(0.0f),
   terpstraPanY(0.0f),

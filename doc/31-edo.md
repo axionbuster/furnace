@@ -86,9 +86,9 @@ each hex displays:
 
 - the note name (letter + accidental, no octave) centered in the cell
 - the octave digit as a small superscript in the upper-right corner
-- a small badge in the lower-left corner showing the QWERTY key currently bound to that slot at the active octave and guide position, when one exists
+- a small badge in the lower-left corner showing the QWERTY key currently bound to that slot at the active octave, when one exists
 
-the guide is the toolbar group that decides where those badges land. its arrows shift the QWERTY rows across the lattice by 5 EDO steps horizontally or 2 steps vertically, and `Oct-` / `Oct+` shift them by a full octave; the arrow keys do the same while the window has focus, with `Shift` held for the octave jump. the shift reaches the computer keyboard only while this window has focus, so the badges show the unshifted slots whenever some other window is focused — the badges always name the cells the keys will really play.
+the badges follow the `Octave` setting and nothing else: the three letter rows are exactly 31 keys, so they land on one complete octave of the lattice, with `[`, `]` and the number row continuing ten steps into the next. there is no separate way to shift them across the grid.
 
 cells are filled by accidental class — natural, sharp, flat, double-sharp, and double-flat each get a distinct color — and slots outside the valid range from 0 to 464 are drawn dimmed and are not interactive. clicking or dragging across cells plays notes and (when the pattern editor's edit mode is active) writes them into the pattern at the cursor; dragging produces a natural glissando across the pressed cells. the view supports panning (right-click and drag) and zooming (`Ctrl`-scrolling), and both persist between sessions.
 

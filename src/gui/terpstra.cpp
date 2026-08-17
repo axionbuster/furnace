@@ -127,19 +127,9 @@ void FurnaceGUI::drawTerpstra() {
       keyBadge[i.second]=keyName[0];
     }
 
-    // the QWERTY keys only pick up the guide offset while this window holds
-    // focus, and the note-preview path decides that from curWindowThreadSafe.
-    // read the same value here so the badges always name the cell its key
-    // reaches right now, instead of the one it would reach if focus moved.
-    const int guideOffset=(curWindowThreadSafe==GUI_WINDOW_TERPSTRA)?(5*terpstraAnchorQ+2*terpstraAnchorR):0;
-
     ImGuiIO& io=ImGui::GetIO();
     auto tooltip=[](const char* description) {
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s",description);
-    };
-    auto moveGuide=[this](int q, int r) {
-      terpstraAnchorQ=CLAMP(terpstraAnchorQ+q,-128,128);
-      terpstraAnchorR=CLAMP(terpstraAnchorR+r,-128,128);
     };
     auto zoomCentered=[this](float factor) {
       float oldZoom=terpstraZoom;
@@ -149,8 +139,8 @@ void FurnaceGUI::drawTerpstra() {
       terpstraPanY*=ratio;
     };
 
-    // keep the pattern and keyboard-guide controls in one compact row so the
-    // lattice layout itself remains unchanged.
+    // keep the pattern and view controls in one compact row so the lattice
+    // layout itself remains unchanged.
     ImGui::Text("%s %d",_("Step"),editStep);
     ImGui::SameLine();
     ImGui::BeginDisabled(!edit);
@@ -169,29 +159,6 @@ void FurnaceGUI::drawTerpstra() {
     if (ImGui::SmallButton(ICON_FA_ANGLE_DOUBLE_DOWN "##TerpstraPatternBottom")) moveCursor(0,(e->curSubSong->patLen-1)-cursor.y,false);
     tooltip(_("Move to the bottom of the pattern"));
     ImGui::EndDisabled();
-
-    ImGui::SameLine();
-    ImGui::TextDisabled("|");
-    ImGui::SameLine();
-    ImGui::TextUnformatted(_("Guide"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_FA_ARROW_LEFT "##TerpstraGuideLeft")) moveGuide(-1,0);
-    tooltip(_("Move the physical keyboard guide left (5 EDO steps)"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_FA_ARROW_RIGHT "##TerpstraGuideRight")) moveGuide(1,0);
-    tooltip(_("Move the physical keyboard guide right (5 EDO steps)"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_FA_ARROW_UP "##TerpstraGuideUp")) moveGuide(0,1);
-    tooltip(_("Move the physical keyboard guide up (2 EDO steps)"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_FA_ARROW_DOWN "##TerpstraGuideDown")) moveGuide(0,-1);
-    tooltip(_("Move the physical keyboard guide down (2 EDO steps)"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(_("Oct-##TerpstraGuideOctaveDown"))) moveGuide(-7,2);
-    tooltip(_("Move the guide down one octave"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(_("Oct+##TerpstraGuideOctaveUp"))) moveGuide(7,-2);
-    tooltip(_("Move the guide up one octave"));
 
     ImGui::SameLine();
     ImGui::TextDisabled("|");
@@ -259,14 +226,6 @@ void FurnaceGUI::drawTerpstra() {
             terpstraPanY=0.0f;
             terpstraZoom=1.0f;
           }
-        } else if (io.KeyShift) {
-          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-7,2);
-          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(7,-2);
-        } else if (!io.KeyAlt) {
-          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-1,0);
-          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(1,0);
-          if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) moveGuide(0,1);
-          if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) moveGuide(0,-1);
         }
       }
 
@@ -569,7 +528,7 @@ void FurnaceGUI::drawTerpstra() {
           ImVec2 octaveSize=mainFont->CalcTextSizeA(smallSize,FLT_MAX,0.0f,octave);
           dl->AddText(mainFont,smallSize,ImVec2(pos.x+hexSize*0.44f-octaveSize.x,pos.y-hexSize*0.62f),textColor,octave);
 
-          int key=note-DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)-guideOffset;
+          int key=note-DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE);
           if (key>=0 && key<=96 && keyBadge[key]) {
             char badge[2];
             badge[0]=keyBadge[key];
