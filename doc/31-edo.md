@@ -74,7 +74,7 @@ the default computer-keyboard note-entry layout is chromatic, not isomorphic. th
 
 ## Terpstra Keyboard window
 
-the Terpstra Keyboard window (opened from the window menu, alongside the piano and other visualizers) is an isomorphic hexagonal note-entry surface modeled on Terpstra-style keyboards. each hexagonal cell is one slot; the hex grid's two axes correspond to fixed pitch intervals, so a given fingering shape produces the same interval anywhere on the grid — the defining property of an isomorphic layout, which the flat QWERTY rows above cannot offer.
+the Terpstra Keyboard window (opened from the window menu) is an isomorphic hexagonal note-entry surface modeled on Terpstra-style keyboards. each hexagonal cell is one slot; the hex grid's two axes correspond to fixed pitch intervals, so a given fingering shape produces the same interval anywhere on the grid — the defining property of an isomorphic layout, which the flat QWERTY rows above cannot offer.
 
 each hex displays:
 
@@ -82,7 +82,7 @@ each hex displays:
 - the octave digit as a small superscript in the upper-right corner
 - a small badge in the lower-left corner showing the QWERTY key currently bound to that slot at the active octave, when one exists
 
-cells are filled by accidental class — natural, sharp, flat, double-sharp, and double-flat each get a distinct color — and slots outside the valid range from 0 to 179 are drawn dimmed and are not interactive. clicking or dragging across cells plays notes and (when the pattern editor's edit mode is active) writes them into the pattern, the same way the piano widget does; dragging produces a natural glissando across the pressed cells. the view supports panning (right-click and drag) and zooming (`Ctrl`-scrolling), and both persist between sessions.
+cells are filled by accidental class — natural, sharp, flat, double-sharp, and double-flat each get a distinct color — and slots outside the valid range from 0 to 179 are drawn dimmed and are not interactive. clicking or dragging across cells plays notes and (when the pattern editor's edit mode is active) writes them into the pattern at the cursor; dragging produces a natural glissando across the pressed cells. the view supports panning (right-click and drag) and zooming (`Ctrl`-scrolling), and both persist between sessions.
 
 while the song plays, active notes light their matching cells and remain lit until their channel receives a note-off, is muted, or playback stops. when a channel changes pitch, its previous cell turns off and its new cell lights. mouse and QWERTY input light the pressed cell the same way, in the color of whichever channel the preview was routed to.
 
@@ -104,6 +104,6 @@ every sounding cell also casts octave echoes: the same pitch class in the other 
 
 - **`E5xx` has a ±38.7-cent full-scale range.** `80` is neutral, `00` is one 31-EDO step (38.71 cents) down, and `FF` is nearly one step up; each change of one in `xx` is 1/128 of a step. existing patterns using `E5xx` for 12-EDO-scale pitch bends will bend by a different amount after conversion to this fork.
 
-- **the piano/input-pad widget stays 12-key-per-octave.** it remains a legacy 12-banded layout and does not attempt to expose all 31 steps of an octave as piano-style keys. it is still functional for coarse note entry and preview, but the Terpstra Keyboard window is the intended primary input surface for 31-EDO.
+- **the piano window is gone.** stock Furnace's piano is a 12-key-per-octave layout with no way to reach all 31 steps of an octave, so this fork removes it rather than leave a surface that can only enter a subset of the pitches. the value input pad lived inside that same window and goes with it. the Terpstra Keyboard window is the only on-screen note-entry surface in this fork; the QWERTY rows and MIDI input cover the rest.
 
-- **the "use flats instead of sharps" and "use German notation" settings have no effect.** both settings assume a single-spelling 12-EDO note table where sharp and flat names are interchangeable respellings of the same pitch. in this fork, sharps, flats, double-sharps, and double-flats each name a distinct pitch with no ambiguity to resolve, so there is nothing for these settings to toggle; they remain present in the settings window for compatibility but have no visible effect on note display.
+- **the "use flats instead of sharps" setting is gone.** it assumed a 12-EDO note table where a sharp and a flat are interchangeable spellings of one pitch. in this fork sharps, flats, double-sharps, and double-flats each name a distinct pitch, so there is no ambiguity to resolve and nothing for the setting to toggle; it has been removed rather than left in place doing nothing. "use German notation" is unaffected and still applies everywhere note names are drawn — it renames pitches rather than respelling them, turning `Bbb`, `Bb`, `B`, and `B#` into `Hbb`, `B`, `H`, and `H#`, which remain four distinct pitches.
