@@ -16,6 +16,8 @@ the index follows.
 8. [advanced topics](8-advanced/README.md)
 9. [guides](9-guides/README.md)
 
+this fork retunes Furnace to 31 tones per octave. the [31-EDO guide](31-edo.md) covers what that changes — the note space, note entry, the Terpstra Keyboard window, and the places where the rest of this manual no longer describes the program you are running.
+
 ## authors
 
 - brickblock369

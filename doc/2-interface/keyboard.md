@@ -63,7 +63,7 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Wavetable Editor                                       | —                |
 | Sample Editor                                          | —                |
 | Edit Controls                                          | —                |
-| Piano                                                  | —                |
+| Terpstra Keyboard                                      | —                |
 | Oscilloscope (master)                                  | —                |
 | Oscilloscope (per-channel)                             | —                |
 | Oscilloscope (X-Y)                                     | —                |
