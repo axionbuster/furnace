@@ -115,7 +115,7 @@ const char* FurnaceGUI::noteName(short note) {
   } else if (note==DIV_NOTE_NULL_PAT) {
     return "BUG ";
   }
-  if (note<0 || note>=180) {
+  if (note<0 || note>=DIV_EDO31_NOTE_COUNT) {
     return "??? ";
   }
   if (settings.germanNotation) return noteNamesG[note];
@@ -153,7 +153,7 @@ bool FurnaceGUI::decodeNote(const char* what, short& note) {
     note=DIV_NOTE_RAW;
     return true;
   }
-  for (int i=0; i<180; i++) {
+  for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
     const char* visibleName=settings.germanNotation?noteNamesG[i]:noteNames[i];
     if (strcmp(what,visibleName)==0) {
       note=i;
@@ -582,7 +582,7 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
     snprintf(tempID,64,"%s##NREL",noteRelLabel);
   } else if (*value==DIV_NOTE_OFF) {
     snprintf(tempID,64,"%s##NOFF",noteOffLabel);
-  } else if (*value>=0 && *value<180) {
+  } else if (*value>=0 && *value<DIV_EDO31_NOTE_COUNT) {
     snprintf(tempID,64,"%s",baseNoteNames31[*value%31]);
   } else {
     snprintf(tempID,64,"???");
@@ -593,17 +593,17 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
   int note=(*value)%31;
   int oct=GUI_EDIT_OCTAVE_MIN;
   // edo31Octave() applies the Cb rule, so the digit here matches the pattern display
-  if (*value<180) oct=edo31Octave(*value);
+  if (*value<DIV_EDO31_NOTE_COUNT) oct=edo31Octave(*value);
   ImGui::BeginGroup();
   ImGui::PushID(value);
   if (ImGui::BeginCombo("##NoteSelectorNote",tempID)) {
     for (int j=0; j<31; j++) {
       snprintf(tempID,64,"%s",baseNoteNames31[j]);
-      if (ImGui::Selectable(tempID,note==j && *value<180)) {
+      if (ImGui::Selectable(tempID,note==j && *value<DIV_EDO31_NOTE_COUNT)) {
         note=j;
         calcNote=true;
       }
-      if (note==j && *value<180) ImGui::SetItemDefaultFocus();
+      if (note==j && *value<DIV_EDO31_NOTE_COUNT) ImGui::SetItemDefaultFocus();
     }
     if (showOffRel) {
       if (ImGui::Selectable(noteOffLabel,*value==DIV_NOTE_OFF)) {
@@ -627,7 +627,7 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
     ImGui::EndCombo();
   }
   ImGui::SameLine();
-  if (*value<180) {
+  if (*value<DIV_EDO31_NOTE_COUNT) {
     ImGui::SetNextItemWidth(width/2);
     if (ImGui::InputScalar("##NoteSelectorOctave",ImGuiDataType_S32,&oct)) {
       if (oct<octaveMin) oct=octaveMin;
@@ -636,13 +636,13 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
     }
   }
   if (calcNote) {
-    int newValue=(oct-2)*31+note;
+    int newValue=(oct-DIV_EDO31_BASE_OCTAVE)*DIV_EDO31_STEPS+note;
     // Cb takes the digit of the C above it, so its slot is one chunk lower
-    if (note==29) newValue-=31;
+    if (note==29) newValue-=DIV_EDO31_STEPS;
     // keep the selected step, moving it to the nearest octave that fits
-    while (newValue>179) newValue-=31;
-    while (newValue<0) newValue+=31;
-    *value=CLAMP(newValue,0,179);
+    while (newValue>DIV_EDO31_MAX_SLOT) newValue-=DIV_EDO31_STEPS;
+    while (newValue<0) newValue+=DIV_EDO31_STEPS;
+    *value=CLAMP(newValue,0,DIV_EDO31_MAX_SLOT);
     ret=true;
   }
   ImGui::PopID();
@@ -1427,9 +1427,9 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
   auto it=noteKeys.find(scancode);
   if (it!=noteKeys.cend()) {
     int key=it->second;
-    int num=31*(curOctave-2)+key;
+    int num=DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)+key;
     if (num<0) num=0; // C-2
-    if (num>179) num=179; // Bbb-7
+    if (num>DIV_EDO31_MAX_SLOT) num=DIV_EDO31_MAX_SLOT; // B#9
 
     if (key==100) return;
     if (key==101) return;
@@ -1989,10 +1989,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           auto it=noteKeys.find(ev.key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=31*(curOctave-2)+key;
+            int num=DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)+key;
 
             if (num<0) num=0; // C-2
-            if (num>179) num=179; // Bbb-7
+            if (num>DIV_EDO31_MAX_SLOT) num=DIV_EDO31_MAX_SLOT; // B#9
 
             alterSampleMap(1,num);
             return;
@@ -2081,10 +2081,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               auto it=noteKeys.find(ev.key.keysym.scancode);
               if (it!=noteKeys.cend()) {
                 int key=it->second;
-                int num=31*(curOctave-2)+key;
+                int num=DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)+key;
 
                 if (num<0) num=0; // C-2
-                if (num>179) num=179; // Bbb-7
+                if (num>DIV_EDO31_MAX_SLOT) num=DIV_EDO31_MAX_SLOT; // B#9
 
                 if (edit) {
                   noteInput(num,key,-1,chordInputOffset);
@@ -4212,7 +4212,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=CLAMP(31*(curOctave-2)+key,0,179);
+            int num=CLAMP(DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)+key,0,DIV_EDO31_MAX_SLOT);
             if (key!=100 && key!=101 && key!=102 && key!=103) {
               int pStart=-1;
               int pEnd=-1;
@@ -4240,7 +4240,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=CLAMP(31*(curOctave-2)+key,0,179);
+            int num=CLAMP(DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)+key,0,DIV_EDO31_MAX_SLOT);
             if (key!=100 && key!=101 && key!=102 && key!=103) {
               e->previewWave(curWave,num);
               wavePreviewOn=true;
@@ -4276,14 +4276,14 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
-            int num=31*(curOctave-2)+key;
+            int num=DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)+key;
 
             if (curWindowThreadSafe==GUI_WINDOW_TERPSTRA) {
               num+=5*terpstraAnchorQ+2*terpstraAnchorR;
             }
 
             if (num<0) num=0; // C-2
-            if (num>179) num=179; // Bbb-7
+            if (num>DIV_EDO31_MAX_SLOT) num=DIV_EDO31_MAX_SLOT; // B#9
 
             if (key!=100 && key!=101 && key!=102 && key!=103) {
               if (curWindowThreadSafe==GUI_WINDOW_TERPSTRA && ev->key.keysym.scancode>=0 && ev->key.keysym.scancode<SDL_NUM_SCANCODES) {
@@ -7495,15 +7495,15 @@ bool FurnaceGUI::loop() {
               if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
 
               if (makeDrumkitMode) {
-                for (int j=0; j<180; j++) {
+                for (int j=0; j<DIV_EDO31_NOTE_COUNT; j++) {
                   e->song.ins[curIns]->amiga.noteMap[j].freq=DIV_EDO31_MIDDLE_C;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   e->song.ins[curIns]->amiga.noteMap[j].map=j%12;
                   if ((j%12)>=e->song.sampleLen) continue;
                 }
               } else {
-                int index=-(makeDrumkitOctave-2)*31;
-                for (int j=0; j<180; j++) {
+                int index=-(makeDrumkitOctave-DIV_EDO31_BASE_OCTAVE)*DIV_EDO31_STEPS;
+                for (int j=0; j<DIV_EDO31_NOTE_COUNT; j++) {
                   e->song.ins[curIns]->amiga.noteMap[j].freq=DIV_EDO31_MIDDLE_C;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   if (index<0 || index>=e->song.sampleLen) {
@@ -10121,7 +10121,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(lastAudioLoads,0,sizeof(float)*120);
 
-  memset(terpstraKeyPressed,0,sizeof(bool)*180);
+  memset(terpstraKeyPressed,0,sizeof(terpstraKeyPressed));
   for (int i=0; i<SDL_NUM_SCANCODES; i++) terpstraPreviewNote[i]=-1;
 
   memset(queryReplaceEffectMode,0,sizeof(int)*8);

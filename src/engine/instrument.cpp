@@ -336,17 +336,22 @@ bool DivInstrument::compileSampleMap(SafeWriter* w, bool nes) {
   // don't compile sample map if disabled
   if (!amiga.useNoteMap) return false;
 
-  int low=180;
-  int high=0;
+  // ROM export keeps the legacy 180-slot window (FCS notes are one byte).
+  // notes outside it are not exported.
+  const int windowLow=DIV_EDO31_LEGACY_OFFSET;
+  const int windowHigh=DIV_EDO31_LEGACY_OFFSET+DIV_EDO31_LEGACY_NOTE_COUNT-1;
+
+  int low=windowHigh+1;
+  int high=windowLow;
 
   // find lower/upper boundaries
-  for (int i=0; i<180; i++) {
+  for (int i=windowLow; i<=windowHigh; i++) {
     if (amiga.noteMap[i].map!=-1) {
       low=i;
       break;
     }
   }
-  for (int i=179; i>=0; i--) {
+  for (int i=windowHigh; i>=windowLow; i--) {
     if (amiga.noteMap[i].map!=-1) {
       high=i;
       break;
@@ -383,9 +388,9 @@ bool DivInstrument::compileSampleMap(SafeWriter* w, bool nes) {
       w->writeC(amiga.noteMap[i].dpcmDelta);
     }
   } else {
-    // note
+    // note (rebased into the legacy window's byte range)
     for (int i=low; i<=high; i++) {
-      w->writeC(amiga.noteMap[i].freq);
+      w->writeC(CLAMP(amiga.noteMap[i].freq-DIV_EDO31_LEGACY_OFFSET,0,DIV_EDO31_LEGACY_NOTE_COUNT-1));
     }
   }
 
@@ -1313,7 +1318,7 @@ void DivInstrument::writeFeatureSM(SafeWriter* w) {
   w->writeC(amiga.waveLen);
 
   if (amiga.useNoteMap) {
-    for (int note=0; note<180; note++) {
+    for (int note=0; note<DIV_EDO31_NOTE_COUNT; note++) {
       w->writeS(amiga.noteMap[note].freq);
       w->writeS(amiga.noteMap[note].map);
     }
@@ -1456,7 +1461,7 @@ size_t DivInstrument::writeFeatureLS(SafeWriter* w, std::vector<int>& list, cons
   }
 
   if (amiga.useNoteMap) {
-    for (int i=0; i<180; i++) {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
       if (amiga.noteMap[i].map>=0 && amiga.noteMap[i].map<(int)song->sample.size()) {
         sampleUsed[amiga.noteMap[i].map]=true;
       }
@@ -1613,7 +1618,7 @@ void DivInstrument::writeFeatureNE(SafeWriter* w) {
   w->writeC(amiga.useNoteMap?1:0);
 
   if (amiga.useNoteMap) {
-    for (int note=0; note<180; note++) {
+    for (int note=0; note<DIV_EDO31_NOTE_COUNT; note++) {
       w->writeC(amiga.noteMap[note].dpcmFreq);
       w->writeC(amiga.noteMap[note].dpcmDelta);
     }
@@ -1720,9 +1725,9 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
     w->writeC(sid3.filt[i].filter_matrix);
 
     w->writeC(sid3.filt[i].bindCutoffToNoteStrength);
-    w->writeC(sid3.filt[i].bindCutoffToNoteCenter);
+    w->writeS(sid3.filt[i].bindCutoffToNoteCenter);
     w->writeC(sid3.filt[i].bindResonanceToNoteStrength);
-    w->writeC(sid3.filt[i].bindResonanceToNoteCenter);
+    w->writeS(sid3.filt[i].bindResonanceToNoteCenter);
   }
 
   FEATURE_END;
@@ -2648,14 +2653,15 @@ void DivInstrument::readFeatureSM(SafeReader& reader, short version) {
 
   if (amiga.useNoteMap) {
     int noteLow=(version>=246)?0:60;
-    for (int note=noteLow; note<180; note++) {
+    int noteHigh=(version>=DIV_ENGINE_VERSION_EDO31V2)?DIV_EDO31_NOTE_COUNT:DIV_EDO31_LEGACY_NOTE_COUNT;
+    for (int note=noteLow; note<noteHigh; note++) {
       amiga.noteMap[note].freq=reader.readS();
       if (version<246) amiga.noteMap[note].freq+=60;
       amiga.noteMap[note].map=reader.readS();
     }
 
     if (version<152) {
-      for (int note=0; note<180; note++) {
+      for (int note=0; note<DIV_EDO31_LEGACY_NOTE_COUNT; note++) {
         amiga.noteMap[note].freq=note;
       }
     }
@@ -2943,7 +2949,7 @@ void DivInstrument::readFeatureSL(SafeReader& reader, DivSong* song, short versi
   }
 
   if (amiga.useNoteMap) {
-    for (int i=0; i<180; i++) {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
       if (amiga.noteMap[i].map>=0) {
         amiga.noteMap[i].map=sampleRemap[amiga.noteMap[i].map];
       }
@@ -3078,7 +3084,7 @@ void DivInstrument::readFeatureLS(SafeReader& reader, DivSong* song, short versi
   }
 
   if (amiga.useNoteMap) {
-    for (int i=0; i<180; i++) {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
       if (amiga.noteMap[i].map>=0) {
         amiga.noteMap[i].map=sampleRemap[amiga.noteMap[i].map];
       }
@@ -3237,7 +3243,8 @@ void DivInstrument::readFeatureNE(SafeReader& reader, short version) {
 
   if (amiga.useNoteMap) {
     int noteLow=(version>=246)?0:60;
-    for (int note=noteLow; note<180; note++) {
+    int noteHigh=(version>=DIV_ENGINE_VERSION_EDO31V2)?DIV_EDO31_NOTE_COUNT:DIV_EDO31_LEGACY_NOTE_COUNT;
+    for (int note=noteLow; note<noteHigh; note++) {
       amiga.noteMap[note].dpcmFreq=reader.readC();
       amiga.noteMap[note].dpcmDelta=reader.readC();
     }
@@ -3360,9 +3367,17 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
     sid3.filt[i].filter_matrix=reader.readC();
 
     sid3.filt[i].bindCutoffToNoteStrength=reader.readC();
-    sid3.filt[i].bindCutoffToNoteCenter=reader.readC();
+    if (version>=DIV_ENGINE_VERSION_EDO31V2) {
+      sid3.filt[i].bindCutoffToNoteCenter=reader.readS();
+    } else {
+      sid3.filt[i].bindCutoffToNoteCenter=(unsigned char)reader.readC();
+    }
     sid3.filt[i].bindResonanceToNoteStrength=reader.readC();
-    sid3.filt[i].bindResonanceToNoteCenter=reader.readC();
+    if (version>=DIV_ENGINE_VERSION_EDO31V2) {
+      sid3.filt[i].bindResonanceToNoteCenter=reader.readS();
+    } else {
+      sid3.filt[i].bindResonanceToNoteCenter=(unsigned char)reader.readC();
+    }
   }
 
   READ_FEAT_END;
@@ -4287,6 +4302,27 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   return DIV_DATA_SUCCESS;
 }
 
+void DivInstrument::migrateLegacyNoteDomain() {
+  // note maps: entry n of the legacy 180-slot domain becomes entry n+217,
+  // and mapped playback notes shift by the same amount. entries outside the
+  // migrated window reset to defaults.
+  for (int i=DIV_EDO31_MAX_SLOT; i>=0; i--) {
+    int src=i-DIV_EDO31_LEGACY_OFFSET;
+    if (src>=0 && src<DIV_EDO31_LEGACY_NOTE_COUNT) {
+      amiga.noteMap[i]=amiga.noteMap[src];
+      amiga.noteMap[i].freq=amiga.noteMap[src].freq+DIV_EDO31_LEGACY_OFFSET;
+    } else {
+      amiga.noteMap[i]=DivInstrumentAmiga::SampleMap(i);
+    }
+  }
+
+  // SID3 filter bind centers are absolute notes
+  for (int i=0; i<4; i++) {
+    sid3.filt[i].bindCutoffToNoteCenter=MIN(sid3.filt[i].bindCutoffToNoteCenter+DIV_EDO31_LEGACY_OFFSET,DIV_EDO31_MAX_SLOT);
+    sid3.filt[i].bindResonanceToNoteCenter=MIN(sid3.filt[i].bindResonanceToNoteCenter+DIV_EDO31_LEGACY_OFFSET,DIV_EDO31_MAX_SLOT);
+  }
+}
+
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivSong* song) {
   // 0: old (INST)
   // 1: new (INS2, length)
@@ -4310,11 +4346,20 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
     return DIV_DATA_INVALID_HEADER;
   }
 
+  DivDataErrors ret;
   if (type==1 || type==2) {
     logV("reading new instrument data...");
-    return readInsDataNew(reader,version,type==2,song);
+    ret=readInsDataNew(reader,version,type==2,song);
+  } else {
+    ret=readInsDataOld(reader,version);
   }
-  return readInsDataOld(reader,version);
+
+  // files older than the 465-slot dialect carry the 180-slot note domain
+  if (ret==DIV_DATA_SUCCESS && version<DIV_ENGINE_VERSION_EDO31V2) {
+    migrateLegacyNoteDomain();
+  }
+
+  return ret;
 }
 
 void DivInstrument::convertC64SpecialMacro() {

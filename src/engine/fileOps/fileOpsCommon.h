@@ -58,12 +58,25 @@ struct NotZlibException {
 #define DIV_TFM_MAGIC "TFMfmtV2"
 
 #define DIV_FUR_MAGIC_DS0 "Furnace-B module"
+// first fork dialect: 180-slot note domain (slot 0 = C-2)
 #define DIV_FUR_TAG_EDO31 "FUR31EDO"
+// second fork dialect: 465-slot note domain (slot 0 = C of octave -5),
+// wide PATW pattern blocks, instrument note maps of 465 entries
+#define DIV_FUR_TAG_EDO31V2 "FUR31ED2"
+
+// PATW note field control codes. they sit right above the 465-slot pitch
+// range and are fixed by the FUR31ED2 dialect, independent of the internal
+// DIV_NOTE_* sentinels.
+#define DIV_FUR_PATW_OFF 465
+#define DIV_FUR_PATW_REL 466
+#define DIV_FUR_PATW_MACRO_REL 467
+#define DIV_FUR_PATW_RAW 468
 
 enum DivFurVariants: int {
   DIV_FUR_VARIANT_VANILLA=0,
   DIV_FUR_VARIANT_B=1,
   DIV_FUR_VARIANT_EDO31=2,
+  DIV_FUR_VARIANT_EDO31V2=3,
 };
 
 // MIDI-related

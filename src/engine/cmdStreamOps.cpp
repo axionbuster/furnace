@@ -313,7 +313,8 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
           w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
         }
       } else {
-        w->writeC(CLAMP(c.value,0,0xb3));
+        // FCS keeps the legacy 180-slot window; out-of-window notes clamp
+        w->writeC(CLAMP(c.value-DIV_EDO31_LEGACY_OFFSET,0,0xb3));
       }
       break;
     case DIV_CMD_NOTE_OFF:
@@ -400,7 +401,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
           w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
         }
       } else {
-        w->writeC(c.value);
+        w->writeC(CLAMP(c.value-DIV_EDO31_LEGACY_OFFSET,0,DIV_EDO31_LEGACY_NOTE_COUNT-1));
       }
       break;
     case DIV_CMD_NOTE_ON:
@@ -433,7 +434,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
           w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
         }
       } else {
-        unsigned char val=CLAMP(c.value,0,179);
+        unsigned char val=CLAMP(c.value-DIV_EDO31_LEGACY_OFFSET,0,DIV_EDO31_LEGACY_NOTE_COUNT-1);
         w->writeC(val);
       }
       w->writeC(c.value2);

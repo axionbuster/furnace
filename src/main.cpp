@@ -88,6 +88,7 @@ FurnaceCLI cli;
 
 String outName;
 String vgmOutName;
+String furOutName;
 String cmdOutName;
 String romOutName;
 String txtOutName;
@@ -589,6 +590,12 @@ TAParamResult pVGMOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pFurOut(String val) {
+  furOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pCmdOut(String val) {
   cmdOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -640,6 +647,7 @@ void initParams() {
 
 
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
+  params.push_back(TAParam("F","furout",true,pFurOut,"<filename>","save the loaded module as an uncompressed .fur"));
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
   params.push_back(TAParam("r","romout",true,pROMOut,"<filename|path>","export ROM file, or path for multi-file export"));
@@ -741,6 +749,7 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
+  furOutName="";
   cmdOutName="";
   romOutName="";
   txtOutName="";
@@ -911,7 +920,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const bool outputMode = outName!="" || vgmOutName!="" || cmdOutName!="" || romOutName!="" || txtOutName!="";
+  const bool outputMode = outName!="" || vgmOutName!="" || cmdOutName!="" || romOutName!="" || txtOutName!="" || furOutName!="";
 
   if (fileName.empty() && (benchMode || infoMode || outputMode)) {
     logE("provide a file!");
@@ -1063,6 +1072,22 @@ int main(int argc, char** argv) {
         delete w;
       } else {
         reportError(_("could not write command stream!"));
+      }
+    }
+    if (furOutName!="") {
+      SafeWriter* w=e.saveFur();
+      if (w!=NULL) {
+        FILE* f=ps_fopen(furOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf(_("could not open file! (%s)"),strerror(errno)));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(_("could not write .fur!"));
       }
     }
     if (vgmOutName!="") {

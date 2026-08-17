@@ -239,10 +239,10 @@ void FurnaceGUI::doReplace() {
           break;
         case GUI_QUERY_REPLACE_ADD: {
           int note=p->newData[i.y][DIV_PAT_NOTE];
-          if (note>=0 && note<180) {
+          if (note>=0 && note<DIV_EDO31_NOTE_COUNT) {
             note+=queryReplaceNote;
             if (note<0) note=0;
-            if (note>179) note=179;
+            if (note>DIV_EDO31_MAX_SLOT) note=DIV_EDO31_MAX_SLOT;
 
             p->newData[i.y][DIV_PAT_NOTE]=note;
           }
@@ -250,12 +250,12 @@ void FurnaceGUI::doReplace() {
         }
         case GUI_QUERY_REPLACE_ADD_OVERFLOW: {
             int note=p->newData[i.y][DIV_PAT_NOTE];
-            if (note>=0 && note<180) {
+            if (note>=0 && note<DIV_EDO31_NOTE_COUNT) {
               note+=queryReplaceNote;
               if (note<0) {
-                while (note<0) note+=180;
-              } else if (note>179) {
-                while (note>179) note-=180;
+                while (note<0) note+=DIV_EDO31_NOTE_COUNT;
+              } else if (note>DIV_EDO31_MAX_SLOT) {
+                while (note>DIV_EDO31_MAX_SLOT) note-=DIV_EDO31_NOTE_COUNT;
               }
 
               p->newData[i.y][DIV_PAT_NOTE]=note;
@@ -578,14 +578,14 @@ void FurnaceGUI::drawFindReplace() {
               ImGui::Combo("##NCondition",&i.noteMode,LocalizedComboGetter,queryModes,GUI_QUERY_MAX);
               ImGui::TableNextColumn();
               if (FIRST_VISIBLE(i.noteMode)) {
-                if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=180) {
+                if ((i.noteMode==GUI_QUERY_RANGE || i.noteMode==GUI_QUERY_RANGE_NOT) && i.note>=DIV_EDO31_NOTE_COUNT) {
                   i.note=DIV_EDO31_MIDDLE_C;
                 }
                 NoteSelector(&i.note, i.noteMode!=GUI_QUERY_RANGE && i.noteMode!=GUI_QUERY_RANGE_NOT);
               }
               ImGui::TableNextColumn();
               if (SECOND_VISIBLE(i.noteMode)) {
-                if (i.noteMax<0 || i.noteMax>=256) {
+                if (i.noteMax<0 || i.noteMax>=DIV_EDO31_NOTE_COUNT) {
                   i.noteMax=DIV_EDO31_MIDDLE_C;
                 }
                 NoteSelector(&i.noteMax, false);
@@ -802,8 +802,8 @@ void FurnaceGUI::drawFindReplace() {
             NoteSelector(&queryReplaceNote, true);
           } else if (queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD || queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
             if (ImGui::InputInt("##NRValue",&queryReplaceNote,1,DIV_EDO31_STEPS)) {
-              if (queryReplaceNote<-180) queryReplaceNote=-180;
-              if (queryReplaceNote>180) queryReplaceNote=180;
+              if (queryReplaceNote<-DIV_EDO31_MAX_SLOT) queryReplaceNote=-DIV_EDO31_MAX_SLOT;
+              if (queryReplaceNote>DIV_EDO31_MAX_SLOT) queryReplaceNote=DIV_EDO31_MAX_SLOT;
             }
           } else if (queryReplaceNoteMode==GUI_QUERY_REPLACE_SCALE) {
             ImGui::Text(_("INVALID"));

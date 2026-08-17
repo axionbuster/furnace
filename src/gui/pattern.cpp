@@ -1351,7 +1351,7 @@ void FurnaceGUI::drawPattern() {
           short noteValue=pat->newData[row][DIV_PAT_NOTE];
           const char* idN=noteName(noteValue);
           const bool isDoubleFlat=(
-            noteValue>=0 && noteValue<180 &&
+            noteValue>=0 && noteValue<DIV_EDO31_NOTE_COUNT &&
             edo31Class[noteValue%31]==DIV_EDO31_DFLAT
           );
           if (pat->newData[row][DIV_PAT_NOTE]==DIV_NOTE_RAW) {

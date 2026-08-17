@@ -344,7 +344,7 @@ void DivPlatformES5506::updatePCMChanges(int i) {
       // TODO: this is a mess. it needs to be cleaned up.
       const int next=chan[i].pcm.next;
       bool sampleValid=false;
-      if (((ins->amiga.useNoteMap) && (next>=0 && next<180)) ||
+      if (((ins->amiga.useNoteMap) && (next>=0 && next<DIV_EDO31_NOTE_COUNT)) ||
           ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
         int sample=next;
         if (ins->amiga.useNoteMap) {

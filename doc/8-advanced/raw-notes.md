@@ -1,6 +1,6 @@
 # raw note entry
 
-in some cases, you might find it limiting to enter notes purely by note names. it usually occurs when this fork's 180-slot range (`C-2` through `Bbb7`) is not sufficient, or when you need to play exact frequencies.
+in some cases, you might find it limiting to enter notes purely by note names. it usually occurs when this fork's 465-slot range (`c-5`, C of octave -5, through `B#9`) is not sufficient, or when you need to play exact frequencies.
 
 Furnace 0.7 introduces raw frequency/period notes. this allows you to directly enter frequency/period values that will be written to the chip's pitch registers as-is.
 

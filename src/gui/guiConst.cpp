@@ -51,48 +51,34 @@ const char* baseNoteNames31[31]={
   "Bbb", "A#",  "Bb",  "Ax",  "B",   "Cb",  "B#"
 };
 
-// The pattern and clipboard use fixed-width four-character note cells. German
-// spelling stays meaningful in 31-EDO: Bbb/Bb/B/B# become Hbb/B/H/H# while
-// remaining four distinct pitches.
-#define EDO31_OCTAVE(_octave,_next,_bbb,_bb,_b,_bsharp) \
-  "C-" _octave " ", "Dbb" _octave, "C#" _octave " ", "Db" _octave " ", \
-  "Cx" _octave " ", "D-" _octave " ", "Ebb" _octave, "D#" _octave " ", \
-  "Eb" _octave " ", "Dx" _octave " ", "E-" _octave " ", "Fb" _octave " ", \
-  "E#" _octave " ", "F-" _octave " ", "Gbb" _octave, "F#" _octave " ", \
-  "Gb" _octave " ", "Fx" _octave " ", "G-" _octave " ", "Abb" _octave, \
-  "G#" _octave " ", "Ab" _octave " ", "Gx" _octave " ", "A-" _octave " ", \
-  _bbb _octave, "A#" _octave " ", _bb _octave " ", "Ax" _octave " ", \
-  _b _octave " ", "Cb" _next " ", _bsharp _octave " "
-
-#define EDO31_PARTIAL_OCTAVE(_octave,_bbb) \
-  "C-" _octave " ", "Dbb" _octave, "C#" _octave " ", "Db" _octave " ", \
-  "Cx" _octave " ", "D-" _octave " ", "Ebb" _octave, "D#" _octave " ", \
-  "Eb" _octave " ", "Dx" _octave " ", "E-" _octave " ", "Fb" _octave " ", \
-  "E#" _octave " ", "F-" _octave " ", "Gbb" _octave, "F#" _octave " ", \
-  "Gb" _octave " ", "Fx" _octave " ", "G-" _octave " ", "Abb" _octave, \
-  "G#" _octave " ", "Ab" _octave " ", "Gx" _octave " ", "A-" _octave " ", \
-  _bbb _octave
-
-const char* noteNames[180]={
-  EDO31_OCTAVE("2","3","Bbb","Bb","B-","B#"),
-  EDO31_OCTAVE("3","4","Bbb","Bb","B-","B#"),
-  EDO31_OCTAVE("4","5","Bbb","Bb","B-","B#"),
-  EDO31_OCTAVE("5","6","Bbb","Bb","B-","B#"),
-  EDO31_OCTAVE("6","7","Bbb","Bb","B-","B#"),
-  EDO31_PARTIAL_OCTAVE("7","Bbb")
+// The pattern and clipboard use fixed-width four-character note cells,
+// generated from the engine's edo31FormatNote so they always match the
+// serialized note domain. German spelling stays meaningful in 31-EDO:
+// Bbb/Bb/B/B# become Hbb/B/H/H# while remaining four distinct pitches.
+// negative octaves lowercase the letter ("c-5 " is C of octave -5); the
+// lone octave-10 name is "Cb10".
+static const char* const edo31StepNamesG[31]={
+  "C",   "Dbb", "C#",  "Db",  "Cx",  "D",   "Ebb", "D#",
+  "Eb",  "Dx",  "E",   "Fb",  "E#",  "F",   "Gbb", "F#",
+  "Gb",  "Fx",  "G",   "Abb", "G#",  "Ab",  "Gx",  "A",
+  "Hbb", "A#",  "B",   "Ax",  "H",   "Cb",  "H#"
 };
 
-const char* noteNamesG[180]={
-  EDO31_OCTAVE("2","3","Hbb","B-","H-","H#"),
-  EDO31_OCTAVE("3","4","Hbb","B-","H-","H#"),
-  EDO31_OCTAVE("4","5","Hbb","B-","H-","H#"),
-  EDO31_OCTAVE("5","6","Hbb","B-","H-","H#"),
-  EDO31_OCTAVE("6","7","Hbb","B-","H-","H#"),
-  EDO31_PARTIAL_OCTAVE("7","Hbb")
-};
+static char noteNameData[DIV_EDO31_NOTE_COUNT][5];
+static char noteNameDataG[DIV_EDO31_NOTE_COUNT][5];
+const char* noteNames[DIV_EDO31_NOTE_COUNT];
+const char* noteNamesG[DIV_EDO31_NOTE_COUNT];
 
-#undef EDO31_PARTIAL_OCTAVE
-#undef EDO31_OCTAVE
+static struct EDO31NoteNameIniter {
+  EDO31NoteNameIniter() {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
+      edo31FormatNote(i,noteNameData[i]);
+      edo31FormatNote(i,noteNameDataG[i],edo31StepNamesG);
+      noteNames[i]=noteNameData[i];
+      noteNamesG[i]=noteNameDataG[i];
+    }
+  }
+} edo31NoteNameIniter;
 
 const char* pitchLabel[11]={
   "1/6", "1/5", "1/4", "1/3", "1/2", "1x", "2x", "3x", "4x", "5x", "6x"

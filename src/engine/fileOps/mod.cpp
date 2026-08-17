@@ -197,7 +197,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
           int period=data[1]+((data[0]&0x0f)<<8);
           if (period>0 && period<0x0fff) {
             short note=(short)round(log2(3424.0/period)*12);
-            dstrowN[DIV_PAT_NOTE]=note+72;
+            dstrowN[DIV_PAT_NOTE]=note+72+DIV_EDO31_LEGACY_OFFSET;
             if (period<114) {
               bypassLimits=true;
             }

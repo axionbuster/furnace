@@ -3160,7 +3160,7 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
   }
 
   for (int i=sampleMapMin; i<=sampleMapMax; i++) {
-    if (i<0 || i>=180) continue;
+    if (i<0 || i>=DIV_EDO31_NOTE_COUNT) continue;
 
     if (sampleMapColumn==1 && column==1) {
       ins->amiga.noteMap[i].freq=val;
@@ -3232,7 +3232,7 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
 
   if (advance && sampleMapMin==sampleMapMax) {
     sampleMapSelStart++;
-    if (sampleMapSelStart>179) sampleMapSelStart=179;
+    if (sampleMapSelStart>DIV_EDO31_MAX_SLOT) sampleMapSelStart=DIV_EDO31_MAX_SLOT;
     sampleMapSelEnd=sampleMapSelStart;
   }
 
@@ -3745,7 +3745,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
 
         ImGui::PushStyleColor(ImGuiCol_Header,ImGui::GetColorU32(ImGuiCol_HeaderHovered));
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,ImGui::GetColorU32(ImGuiCol_HeaderHovered));
-        for (int i=0; i<180; i++) {
+        for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
           DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -3915,7 +3915,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
           } else {
             ImGui::TableNextColumn();
             sName="???";
-            if ((sampleMap.freq)>=0 && (sampleMap.freq)<180) {
+            if ((sampleMap.freq)>=0 && (sampleMap.freq)<DIV_EDO31_NOTE_COUNT) {
               sName=noteNames[sampleMap.freq];
             }
             sName+=fmt::sprintf("##SN%d",i);
@@ -3997,19 +3997,19 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
       ImGui::OpenPopup("SampleMapUtils");
     }
     if (ImGui::BeginPopup("SampleMapUtils",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
-      if (sampleMapSelStart==sampleMapSelEnd && sampleMapSelStart>=0 && sampleMapSelStart<180) {
+      if (sampleMapSelStart==sampleMapSelEnd && sampleMapSelStart>=0 && sampleMapSelStart<DIV_EDO31_NOTE_COUNT) {
         if (ins->type==DIV_INS_NES) {
           if (ImGui::MenuItem(_("set entire map to this pitch"))) {
-            if (sampleMapSelStart>=0 && sampleMapSelStart<180) {
-              for (int i=0; i<180; i++) {
+            if (sampleMapSelStart>=0 && sampleMapSelStart<DIV_EDO31_NOTE_COUNT) {
+              for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
                 if (i==sampleMapSelStart) continue;
                 ins->amiga.noteMap[i].dpcmFreq=ins->amiga.noteMap[sampleMapSelStart].dpcmFreq;
               }
             }
           }
           if (ImGui::MenuItem(_("set entire map to this delta counter value"))) {
-            if (sampleMapSelStart>=0 && sampleMapSelStart<180) {
-              for (int i=0; i<180; i++) {
+            if (sampleMapSelStart>=0 && sampleMapSelStart<DIV_EDO31_NOTE_COUNT) {
+              for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
                 if (i==sampleMapSelStart) continue;
                 ins->amiga.noteMap[i].dpcmDelta=ins->amiga.noteMap[sampleMapSelStart].dpcmDelta;
               }
@@ -4017,8 +4017,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
           }
         } else {
           if (ImGui::MenuItem(_("set entire map to this note"))) {
-            if (sampleMapSelStart>=0 && sampleMapSelStart<180) {
-              for (int i=0; i<180; i++) {
+            if (sampleMapSelStart>=0 && sampleMapSelStart<DIV_EDO31_NOTE_COUNT) {
+              for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
                 if (i==sampleMapSelStart) continue;
                 ins->amiga.noteMap[i].freq=ins->amiga.noteMap[sampleMapSelStart].freq;
               }
@@ -4026,8 +4026,8 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
           }
         }
         if (ImGui::MenuItem(_("set entire map to this sample"))) {
-          if (sampleMapSelStart>=0 && sampleMapSelStart<180) {
-            for (int i=0; i<180; i++) {
+          if (sampleMapSelStart>=0 && sampleMapSelStart<DIV_EDO31_NOTE_COUNT) {
+            for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
               if (i==sampleMapSelStart) continue;
               ins->amiga.noteMap[i].map=ins->amiga.noteMap[sampleMapSelStart].map;
             }
@@ -4036,24 +4036,24 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
       }
       if (ins->type==DIV_INS_NES) {
         if (ImGui::MenuItem(_("reset pitches"))) {
-          for (int i=0; i<180; i++) {
+          for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
             ins->amiga.noteMap[i].dpcmFreq=15;
           }
         }
         if (ImGui::MenuItem(_("clear delta counter values"))) {
-          for (int i=0; i<180; i++) {
+          for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
             ins->amiga.noteMap[i].dpcmDelta=-1;
           }
         }
       } else {
         if (ImGui::MenuItem(_("reset notes"))) {
-          for (int i=0; i<180; i++) {
+          for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
             ins->amiga.noteMap[i].freq=i;
           }
         }
       }
       if (ImGui::MenuItem(_("clear map samples"))) {
-        for (int i=0; i<180; i++) {
+        for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
           ins->amiga.noteMap[i].map=-1;
         }
       }
@@ -6732,7 +6732,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
 
           snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindCutoffToNoteCenter));
           snprintf(buffer,100,_("Cutoff change center note##bindcutcenternote%d"),i+1);
-          P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindCutoffToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
+          P(CWSliderScalar(buffer,ImGuiDataType_U16,&filt->bindCutoffToNoteCenter,&_ZERO,&_FOUR_HUNDRED_SIXTY_FOUR,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(_("The center note for cutoff changes. At this note no cutoff change happens.\nAs pitch goes lower or higher,cutoff changes apply."));
           }
@@ -6765,7 +6765,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
 
           snprintf(buffer2,100,_("%s"),noteNameNormal(filt->bindResonanceToNoteCenter));
           snprintf(buffer,100,_("Resonance change center note##bindrescenternote%d"),i+1);
-          P(CWSliderScalar(buffer,ImGuiDataType_U8,&filt->bindResonanceToNoteCenter,&_ZERO,&_ONE_HUNDRED_SEVENTY_NINE,buffer2)); rightClickable
+          P(CWSliderScalar(buffer,ImGuiDataType_U16,&filt->bindResonanceToNoteCenter,&_ZERO,&_FOUR_HUNDRED_SIXTY_FOUR,buffer2)); rightClickable
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(_("The center note for resonance changes. At this note no resonance change happens.\nAs pitch goes lower or higher,resonance changes apply."));
           }

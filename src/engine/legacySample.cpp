@@ -75,7 +75,7 @@ bool DivEngine::convertLegacySampleMode() {
 
     if (canUse) {
       if (ins->amiga.useNoteMap) {
-        for (int i=0; i<180; i++) {
+        for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
           if (ins->amiga.noteMap[i].map>=0 && ins->amiga.noteMap[i].map<(int)song.sample.size()) {
             isUsedByIns[ins->amiga.noteMap[i].map]=true;
           }
@@ -101,9 +101,10 @@ bool DivEngine::convertLegacySampleMode() {
         } else {
           ins->name=fmt::sprintf("Legacy Samples (bank %d)",(int)bank);
         }
-        for (int i=0; i<180; i++) {
-          ins->amiga.noteMap[i].freq=108; // C-4
-          ins->amiga.noteMap[i].map=12*bank+(i%12);
+        // legacy-mode notes always sit in the migrated 180-slot window
+        for (int i=0; i<DIV_EDO31_LEGACY_NOTE_COUNT; i++) {
+          ins->amiga.noteMap[i+DIV_EDO31_LEGACY_OFFSET].freq=108+DIV_EDO31_LEGACY_OFFSET; // C-4
+          ins->amiga.noteMap[i+DIV_EDO31_LEGACY_OFFSET].map=12*bank+(i%12);
         }
 
         song.ins.push_back(ins);
@@ -366,7 +367,7 @@ bool DivEngine::convertLegacySampleMode() {
               initSampleInsIfNeeded();
               p->newData[k][DIV_PAT_INS]=MIN(0xff,legacyInsInit+sampleBank);
 
-              int involvedSample=12*sampleBank+(p->newData[k][DIV_PAT_NOTE]%12);
+              int involvedSample=12*sampleBank+((p->newData[k][DIV_PAT_NOTE]-DIV_EDO31_LEGACY_OFFSET)%12);
               if (involvedSample>=0 && involvedSample<song.sampleLen) {
                 if (!isUsedByIns[involvedSample]) {
                   DivSample* sample=song.sample[involvedSample];

@@ -48,11 +48,12 @@
 #define DIV_PAT_IS_EFFECT(_x) ((_x)>DIV_PAT_VOL && ((_x)&1))
 #define DIV_PAT_IS_EFFECT_VAL(_x) ((_x)>DIV_PAT_VOL && (!((_x)&1)))
 
-#define DIV_NOTE_RAW 251
-#define DIV_NOTE_NULL_PAT 252
-#define DIV_NOTE_OFF 253
-#define DIV_NOTE_REL 254
-#define DIV_MACRO_REL 255
+// these sentinels live above the 465-slot 31-EDO note domain (0..464)
+#define DIV_NOTE_RAW 507
+#define DIV_NOTE_NULL_PAT 508
+#define DIV_NOTE_OFF 509
+#define DIV_NOTE_REL 510
+#define DIV_MACRO_REL 511
 
 // sample related
 #define DIV_MAX_SAMPLE_TYPE 4

@@ -1002,12 +1002,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                 if (blockVersion >= 7) {
                   note = reader.readC();
                 }
-                if (note<0 || note>=180) {
+                if (note<0 || note>=DIV_EDO31_LEGACY_NOTE_COUNT) {
                   logE("DPCM note %d out of range!",note);
                   lastError = "DPCM note out of range";
                   delete[] file;
                   return false;
                 }
+                note+=DIV_EDO31_LEGACY_OFFSET;
                 ins->amiga.noteMap[note].map = (short)((unsigned char)reader.readC()) - 1;
                 unsigned char freq = reader.readC();
                 ins->amiga.noteMap[note].dpcmFreq = (freq & 15);       // 0-15 = 0-15 unlooped, 128-143 = 0-15 looped
@@ -1022,7 +1023,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
               bool empty_note_map = true;
 
-              for (int j = 60; j < dpcmNotes+60; j++) {
+              for (int j = 60+DIV_EDO31_LEGACY_OFFSET; j < dpcmNotes+60+DIV_EDO31_LEGACY_OFFSET; j++) {
                 if (ins->amiga.noteMap[j].map != -1) {
                   empty_note_map = false;
                 }
@@ -1767,7 +1768,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               } else if (nextNote == 0) {
                 pat->newData[row][DIV_PAT_NOTE] = -1;
               } else if (nextNote < 0x0d) {
-                pat->newData[row][DIV_PAT_NOTE] = nextOctave*12 + (nextNote - 1) + 60;
+                pat->newData[row][DIV_PAT_NOTE] = nextOctave*12 + (nextNote - 1) + 60 + DIV_EDO31_LEGACY_OFFSET;
               }
             }
 

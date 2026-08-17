@@ -939,7 +939,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
           if (note==254) { // note off
             p->newData[readRow][DIV_PAT_NOTE]=DIV_NOTE_OFF;
           } else if (note!=255) {
-            p->newData[readRow][DIV_PAT_NOTE]=(note&15)+(note>>4)*12+60;
+            p->newData[readRow][DIV_PAT_NOTE]=(note&15)+(note>>4)*12+60+DIV_EDO31_LEGACY_OFFSET;
           }
           p->newData[readRow][DIV_PAT_INS]=(short)ins-1;
         }

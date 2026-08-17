@@ -637,7 +637,7 @@ JSON serializeInstrument(DivInstrument* ins) {
     SET_VALUE(amiga,waveLen);
     if (ins->amiga.useNoteMap) {
       amiga["sampleMap"]={};
-      for (int i=0; i<180; i++) {
+      for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
         JSON map;
         map["freq"]=ins->amiga.noteMap[i].freq;
         map["map"]=ins->amiga.noteMap[i].map;
@@ -653,7 +653,7 @@ JSON serializeInstrument(DivInstrument* ins) {
     nesMap["useNoteMap"]=ins->amiga.useNoteMap;
     if (ins->amiga.useNoteMap) {
       nesMap["sampleMap"]={};
-      for (int i=0; i<180; i++) {
+      for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
         JSON map;
         map["dpcmFreq"]=ins->amiga.noteMap[i].dpcmFreq;
         map["dpcmDelta"]=ins->amiga.noteMap[i].dpcmDelta;

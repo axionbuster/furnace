@@ -571,9 +571,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       // note map
       ins->amiga.useNoteMap=true;
       for (int j=0; j<120; j++) {
-        ins->amiga.noteMap[j+60].freq=((unsigned char)reader.readC())+60;
-        ins->amiga.noteMap[j+60].map=reader.readC()-1;
-        noteMap[i][j]=ins->amiga.noteMap[j+60].map;
+        ins->amiga.noteMap[j+60+DIV_EDO31_LEGACY_OFFSET].freq=((unsigned char)reader.readC())+60+DIV_EDO31_LEGACY_OFFSET;
+        ins->amiga.noteMap[j+60+DIV_EDO31_LEGACY_OFFSET].map=reader.readC()-1;
+        noteMap[i][j]=ins->amiga.noteMap[j+60+DIV_EDO31_LEGACY_OFFSET].map;
       }
 
       // envelopes...
@@ -1306,7 +1306,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
           } else if (note[chan]==254) { // note off
             p->newData[readRow][DIV_PAT_NOTE]=DIV_NOTE_OFF;
           } else if (note[chan]<120) {
-            p->newData[readRow][DIV_PAT_NOTE]=note[chan]+60;
+            p->newData[readRow][DIV_PAT_NOTE]=note[chan]+60+DIV_EDO31_LEGACY_OFFSET;
           } else { // note fade, but Furnace does not support that
             p->newData[readRow][DIV_PAT_NOTE]=DIV_MACRO_REL;
           }

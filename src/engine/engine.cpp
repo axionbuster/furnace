@@ -986,7 +986,7 @@ void DivEngine::delUnusedSamples() {
         isUsed[i->amiga.initSample]=true;
       }
       if (i->amiga.useNoteMap) {
-        for (int j=0; j<180; j++) {
+        for (int j=0; j<DIV_EDO31_NOTE_COUNT; j++) {
           if (i->amiga.noteMap[j].map>=0 && i->amiga.noteMap[j].map<song.sampleLen) {
             isUsed[i->amiga.noteMap[j].map]=true;
           }
@@ -1857,8 +1857,9 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
     boundaryTop>>=1; \
     boundaryBottom>>=1; \
   } \
-  /* slot 0 is C-2, so the middle-C offset aligns it with hardware block 2 */ \
-  int block=((note)+DIV_EDO31_MIDDLE_C)/DIV_EDO31_STEPS; \
+  /* middle C lands in hardware block 4 (and the old domain's C-2, now slot */ \
+  /* 217, stays in block 2), matching the legacy 180-slot calibration */ \
+  int block=((note)+DIV_EDO31_MIDDLE_C-2*DIV_EDO31_LEGACY_OFFSET)/DIV_EDO31_STEPS; \
   if (block<0) block=0; \
   if (block>7) block=7; \
   bf>>=block; \
@@ -2341,7 +2342,7 @@ void DivEngine::noteToSplitNote(short note, short& outNote, short& outOctave) {
       break;
     default:
       outNote=note%DIV_EDO31_STEPS;
-      outOctave=(note/DIV_EDO31_STEPS)+2;
+      outOctave=(note/DIV_EDO31_STEPS)+DIV_EDO31_BASE_OCTAVE;
       if (outNote==0) {
         outNote=DIV_EDO31_STEPS;
         outOctave--;
@@ -3091,7 +3092,7 @@ void DivEngine::delSampleUnsafe(int index, bool render) {
       } else if (i->amiga.initSample>index) {
         i->amiga.initSample--;
       }
-      for (int j=0; j<180; j++) {
+      for (int j=0; j<DIV_EDO31_NOTE_COUNT; j++) {
         if (i->amiga.noteMap[j].map==index) {
           i->amiga.noteMap[j].map=-1;
         } else if (i->amiga.noteMap[j].map>index) {
@@ -3328,7 +3329,7 @@ void DivEngine::exchangeSample(int one, int two) {
     } else if (i->amiga.initSample==two) {
       i->amiga.initSample=one;
     }
-    for (int j=0; j<180; j++) {
+    for (int j=0; j<DIV_EDO31_NOTE_COUNT; j++) {
       if (i->amiga.noteMap[j].map==one) {
         i->amiga.noteMap[j].map=two;
       } else if (i->amiga.noteMap[j].map==two) {

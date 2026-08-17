@@ -323,16 +323,21 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
               w->writeText("|===  ");
             } else if (note==102) {
               w->writeText("|REL  ");
-            } else if (note>DIV_EDO31_STEPS || octave<1 || octave>7) {
+            } else if (note<1 || note>DIV_EDO31_STEPS) {
               w->writeText("|???  ");
             } else {
-              char noteName[5];
               if (note>=DIV_EDO31_STEPS) {
                 note-=DIV_EDO31_STEPS;
                 octave++;
               }
-              edo31FormatNote(DIV_EDO31_STEPS*(octave-2)+note,noteName);
-              w->writeText(fmt::sprintf("|%s ",noteName));
+              int slot=DIV_EDO31_STEPS*(octave-DIV_EDO31_BASE_OCTAVE)+note;
+              if (slot<0 || slot>DIV_EDO31_MAX_SLOT) {
+                w->writeText("|???  ");
+              } else {
+                char noteName[5];
+                edo31FormatNote(slot,noteName);
+                w->writeText(fmt::sprintf("|%s ",noteName));
+              }
             }
 
             if (p->newData[k][DIV_PAT_INS]==-1) {

@@ -24,10 +24,10 @@ struct DivPattern {
   String name;
   /**
    * pattern data is stored in this order:
-   * - 0 note: 0 (min) is C-2, 62 is middle C (C-4), 85 is A-4,
-               and 179 (max) is Bbb-7.
-               252 is null/bug, 253 is note off, 254 is note release and
-               255 is macro release.
+   * - 0 note: 0 (min) is C of octave -5, 279 is middle C (C-4), 302 is A-4,
+               and 464 (max) is B#9.
+               508 is null/bug, 509 is note off, 510 is note release and
+               511 is macro release (see defines.h).
    * - 1 instrument
    * - 2 volume
    * - 3 effect

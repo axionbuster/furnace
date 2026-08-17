@@ -390,9 +390,9 @@ void FurnaceGUI::initSettings() {
                 if (e->curSubSong->pat[i].data[j]!=NULL) {
                   DivPattern* p=e->curSubSong->pat[i].data[j];
                   for (int k=0; k<DIV_MAX_ROWS; k++) {
-                    if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<180) {
+                    if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<DIV_EDO31_NOTE_COUNT) {
                       int newNote=p->newData[k][DIV_PAT_NOTE]+(rand()%40)-18;
-                      p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,60,179);
+                      p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,60+DIV_EDO31_LEGACY_OFFSET,DIV_EDO31_LEGACY_OFFSET+DIV_EDO31_LEGACY_NOTE_COUNT-1);
                     }
                   }
                 }

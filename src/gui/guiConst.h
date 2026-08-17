@@ -19,6 +19,8 @@
 
 // guiConst: constants used in the GUI like arrays, strings and other stuff
 
+#include "../engine/edo31.h"
+
 enum FurnaceGUIChanTypes {
   // the first five match DivChanTypes, do not change order!
 
@@ -71,8 +73,8 @@ extern const int topKeyNotes[5];
 extern const int bottomKeyNotes[7];
 extern const bool isTopKey[12];
 extern const char* baseNoteNames31[31];
-extern const char* noteNames[180];
-extern const char* noteNamesG[180];
+extern const char* noteNames[DIV_EDO31_NOTE_COUNT];
+extern const char* noteNamesG[DIV_EDO31_NOTE_COUNT];
 extern const char* pitchLabel[11];
 extern const char* insTypes[][3];
 extern const char* sampleLoopModes[];

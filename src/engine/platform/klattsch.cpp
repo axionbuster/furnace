@@ -28,7 +28,7 @@
 #define KLATTSCH_MIX_CLIP_THRESHOLD 0.85f
 
 static float furnaceNoteToHz(float note, float tuning) {
-  // dispatch notes are 31-EDO slots; slot 85 is A-4 at the song's tuning.
+  // dispatch notes are 31-EDO slots; slot 302 is A-4 at the song's tuning.
   return tuning*std::pow(2.0f,(note-(float)DIV_EDO31_A4)/(float)DIV_EDO31_STEPS);
 }
 

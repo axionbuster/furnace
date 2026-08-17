@@ -50,7 +50,7 @@ const char* FurnaceGUI::noteNameNormal(short note) {
   } else if (note==DIV_NOTE_NULL_PAT) {
     return "BUG ";
   }
-  if (note<0 || note>=180) {
+  if (note<0 || note>=DIV_EDO31_NOTE_COUNT) {
     return "??? ";
   }
   return noteNames[note];
@@ -563,7 +563,7 @@ void FurnaceGUI::doTranspose(int amount, OperationMask& mask) {
           touch(jOrder,j);
           int top=255;
           if (iFine==DIV_PAT_NOTE) {
-            top=179;
+            top=DIV_EDO31_MAX_SLOT;
             // don't transpose special notes
             if (pat->newData[j][iFine]==DIV_NOTE_OFF) continue;
             if (pat->newData[j][iFine]==DIV_NOTE_REL) continue;
@@ -1136,7 +1136,7 @@ void FurnaceGUI::doPasteMPT(PasteMode mode, int arg, bool readClipboard, String 
                 invalidData=true;
                 break;
               }
-            } else if (pat->newData[j][DIV_PAT_NOTE]<180) {
+            } else if (pat->newData[j][DIV_PAT_NOTE]<DIV_EDO31_NOTE_COUNT) {
               // MPT is one octave higher...
               if (pat->newData[j][DIV_PAT_NOTE]<12) {
                 pat->newData[j][DIV_PAT_NOTE]=0;
@@ -1684,7 +1684,7 @@ void FurnaceGUI::doRandomize(int bottom, int top, bool mode, bool eff, int effVa
       resetTouches;
       int absoluteTop=255;
       if (iFine==DIV_PAT_NOTE) {
-        absoluteTop=179;
+        absoluteTop=DIV_EDO31_MAX_SLOT;
       } else if (iFine==DIV_PAT_INS) {
         if (e->song.ins.empty()) continue;
         absoluteTop=e->song.ins.size()-1;
@@ -2046,7 +2046,7 @@ void FurnaceGUI::doAbsorbInstrument() {
         foundOctave=true;
 
         // decode octave data
-        int octave=(pat->newData[i][DIV_PAT_NOTE]/DIV_EDO31_STEPS)+2;
+        int octave=(pat->newData[i][DIV_PAT_NOTE]/DIV_EDO31_STEPS)+DIV_EDO31_BASE_OCTAVE;
 
         curOctave=CLAMP(octave,GUI_EDIT_OCTAVE_MIN,GUI_EDIT_OCTAVE_MAX);
       }

@@ -1,25 +1,31 @@
 # 31-EDO
 
-this fork reinterprets Furnace's 180-slot note space as 31 equal divisions of the octave (31-EDO) instead of the standard 12-EDO. this document covers the fork's conventions and its known caveats.
+this fork replaces Furnace's 12-EDO note space with 31 equal divisions of the octave (31-EDO). the note domain spans 15 complete 31-EDO octaves — 465 slots — matching the octave span of stock Furnace's 15-octave 12-EDO range. this document covers the fork's conventions and its known caveats.
 
 31-EDO divides the octave into 31 steps of 38.71 cents each, rather than 12 steps of 100 cents. it approximates 12-EDO's intervals unevenly, but reproduces quarter-comma meantone tuning closely. unlike 12-EDO, it distinguishes enharmonic spellings: for example, `C#` and `Db` are different pitches, 77.4 cents apart.
 
 ## slot mapping and anchors
 
-a note is still stored as a single byte from 0 to 179, exactly as in stock Furnace. what changed is what that byte *means*: each unit step is now a 31-EDO step (38.71 cents) instead of a 12-EDO semitone (100 cents).
+a note is a slot number from 0 to 464, covering 15 complete 31-EDO octaves. each unit step is one 31-EDO step (38.71 cents).
 
-    slot = 31 * (octave - 2) + step        step in [0, 30]
+    slot = 31 * (octave + 5) + step        step in [0, 30]
 
-because the 180 slots now span about 5.8 octaves, displayed octave digits run 2 through 7 rather than stock Furnace's much wider 12-EDO range. two slots anchor the tuning:
+displayed octave digits run -5 through 9 (plus a lone `Cb10` at slot 463, per the Cb octave rule below). two slots anchor the tuning:
 
-- slot 62 is middle C, written `C-4`.
-- slot 85 is A-4, tuned to `song.tuning` (440 Hz by default).
+- slot 279 is middle C, written `C-4`.
+- slot 302 is A-4, tuned to `song.tuning` (440 Hz by default).
 
 frequency for any slot follows directly from the A-4 anchor:
 
-    freq(slot) = tuning * 2^((slot - 85) / 31)
+    freq(slot) = tuning * 2^((slot - 302) / 31)
 
-adjacent slots are in a fixed ratio of 2^(1/31) (about 1.0231), and slots 31 apart are exactly one octave. the on-disk `.fur` pattern payload is unchanged — note bytes still range from 0 to 179, with the same sentinel values (`180` = note off, `181` = note release, etc.) — but files saved by this fork are deliberately marked as a separate dialect. they use the existing `Furnace-B module` downstream magic recognized by stock Furnace and carry the tag `FUR31EDO` in the header's final eight reserved bytes. this fork uses that tag to distinguish native 31-EDO files from other downstream files.
+adjacent slots are in a fixed ratio of 2^(1/31) (about 1.0231), and slots 31 apart are exactly one octave.
+
+### serialization dialect
+
+files saved by this fork use the existing `Furnace-B module` downstream magic recognized by stock Furnace and carry the dialect tag `FUR31ED2` in the header's final eight reserved bytes. patterns are stored in a widened `PATW` block whose note field is 16 bits: values 0-464 are pitches, and 465-468 encode note off, note release, macro release, and raw frequency. instrument sample/DPCM note maps serialize all 465 entries, and the format version is 251.
+
+the first fork dialect, tagged `FUR31EDO` (format version 250), kept upstream's 180-slot storage with slot 0 = `C-2`. this fork still reads those files and migrates them silently on load: every pattern note, note-map entry, and other absolute note value is shifted up by 217 slots (7 octaves of 31), which leaves every audible pitch exactly where it was. saving writes the new `FUR31ED2` dialect; the legacy dialect is never written.
 
 the song information window can express this same anchor using any of the 31 spellings. the selected reference note is an interface preference; the song still stores the equivalent A-4 frequency, so changing the selection does not require a `.fur` format change. choosing a new spelling preserves the current concert-pitch ratio and pins that spelling to its conventional 12-EDO frequency. for example, A at standard pitch remains 440 Hz, while choosing C pins C-4 to about 261.62557 Hz and makes A-4 about 437.54731 Hz.
 
@@ -40,11 +46,11 @@ the song information window can express this same anchor using any of the 31 spe
 
 each name is unambiguous and distinct: unlike 12-EDO, `C#` and `Db` are not the same key — they are two different pitches a "diesis" (about 19.4 cents) apart, and both exist as separate, reachable slots.
 
-the octave digit follows the *letter* according to scientific pitch notation, with one deliberate exception: `Cb` takes the digit of the C above it rather than the digit implied by its raw slot arithmetic (so the step below `C-4` is `Cb4`, not `Cb3`). `B#` keeps the digit of its own chunk of 31 slots. every other name's digit is simply `slot/31 + 2`.
+the octave digit follows the *letter* according to scientific pitch notation, with one deliberate exception: `Cb` takes the digit of the C above it rather than the digit implied by its raw slot arithmetic (so the step below `C-4` is `Cb4`, not `Cb3`). `B#` keeps the digit of its own chunk of 31 slots. every other name's digit is simply `slot/31 - 5`.
 
 ## note text and pattern-cell format
 
-the note-name tables, note-input text, and clipboard serialization use fixed 4-byte ASCII fields. natural names (`C`) and two-character names (single sharp/flat `C#`/`Db`, and double-sharp `Cx`) are padded with a trailing space after the octave digit (`C-4 `, `C#4 `, `Cx4 `); the three-character double-flat names (`Dbb`) fill all 4 bytes with no padding, octave digit last (`Dbb4`). sentinel labels (`OFF`, `===`, `REL`, `RAW`, `...`, `???`, `BUG`) are padded to 4 bytes the same way.
+the note-name tables, note-input text, and clipboard serialization use fixed 4-byte ASCII fields. natural names (`C`) and two-character names (single sharp/flat `C#`/`Db`, and double-sharp `Cx`) are padded with a trailing space after the octave digit (`C-4 `, `C#4 `, `Cx4 `); the three-character double-flat names (`Dbb`) fill all 4 bytes with no padding, octave digit last (`Dbb4`). negative octaves lowercase the letter and drop the sign: `c-5 ` is C of octave -5, `c#5 ` is C# of octave -5, and `dbb5` is Dbb of octave -5. the lone octave-10 name is `Cb10`. sentinel labels (`OFF`, `===`, `REL`, `RAW`, `...`, `???`, `BUG`) are padded to 4 bytes the same way.
 
 the pattern view itself remains three glyph cells wide. ordinary names occupy those three cells directly, while a double flat is drawn as a single custom glyph between the letter and octave digit. this visual compaction does not change the four-byte clipboard representation.
 
@@ -54,9 +60,9 @@ this differs from stock Furnace, which uses a fixed 3-byte note field (2-charact
 
 ## MIDI convention
 
-MIDI input and output use consecutive MIDI note numbers as consecutive 31-EDO steps, not as 12-EDO semitones. the mapping is anchored so MIDI note 60 is slot 62 (`C-4`): within the unclamped range, MIDI note *n* maps to slot *n* + 2. this deliberately follows the Lumatone/Terpstra-style microtonal MIDI convention.
+MIDI input and output use consecutive MIDI note numbers as consecutive 31-EDO steps, not as 12-EDO semitones. the mapping is anchored so MIDI note 60 is slot 279 (`C-4`): within the unclamped range, MIDI note *n* maps to slot *n* + 219. this deliberately follows the Lumatone/Terpstra-style microtonal MIDI convention.
 
-in practice, an external 31-EDO MIDI controller using this convention plays in tune against this fork out of the box. an ordinary 12-EDO MIDI keyboard or DAW, which does not know about this convention, will produce a 31-EDO scale that does not match the pitches printed on its keys. MIDI output cannot represent the full 180-slot range: slots above 129 all clamp to MIDI note 127, and the lowest two slots clamp to MIDI note 0.
+in practice, an external 31-EDO MIDI controller using this convention plays in tune against this fork out of the box. an ordinary 12-EDO MIDI keyboard or DAW, which does not know about this convention, will produce a 31-EDO scale that does not match the pitches printed on its keys. MIDI's 128 note numbers cover slots 219 through 346 — about four octaves around middle C — so MIDI cannot represent the full 465-slot range: slots above 346 clamp to MIDI note 127, and slots below 219 clamp to MIDI note 0.
 
 ## QWERTY chromatic rows
 
@@ -82,7 +88,7 @@ each hex displays:
 - the octave digit as a small superscript in the upper-right corner
 - a small badge in the lower-left corner showing the QWERTY key currently bound to that slot at the active octave, when one exists
 
-cells are filled by accidental class — natural, sharp, flat, double-sharp, and double-flat each get a distinct color — and slots outside the valid range from 0 to 179 are drawn dimmed and are not interactive. clicking or dragging across cells plays notes and (when the pattern editor's edit mode is active) writes them into the pattern, the same way the piano widget does; dragging produces a natural glissando across the pressed cells. the view supports panning (right-click and drag) and zooming (`Ctrl`-scrolling), and both persist between sessions.
+cells are filled by accidental class — natural, sharp, flat, double-sharp, and double-flat each get a distinct color — and slots outside the valid range from 0 to 464 are drawn dimmed and are not interactive. clicking or dragging across cells plays notes and (when the pattern editor's edit mode is active) writes them into the pattern, the same way the piano widget does; dragging produces a natural glissando across the pressed cells. the view supports panning (right-click and drag) and zooming (`Ctrl`-scrolling), and both persist between sessions.
 
 while the song plays, active notes light their matching cells and remain lit until their channel receives a note-off, is muted, or playback stops. when a channel changes pitch, its previous cell turns off and its new cell lights. mouse and QWERTY input use the selected or auto-assigned channel's color for the pressed cell and the corresponding cells in other octaves. by default all highlights use the same channel-color scheme as the per-channel oscilloscope; the options button in the keyboard toolbar can switch them to a custom solid color instead.
 
@@ -90,18 +96,20 @@ while the song plays, active notes light their matching cells and remain lit unt
 
 - **stock Furnace warns but still misreads fork files.** stock recognizes the downstream magic, opens a fork file, and warns that it was created with a downstream version. it ignores the `FUR31EDO` tag and still interprets every note slot as 12-EDO, so pitches come out wrong. do not edit or re-save fork-authored files in stock Furnace.
 
-- **unmarked `.fur` files are ambiguous.** vanilla Furnace files and 31-EDO files created before the dialect marker use the same vanilla magic, so this fork cannot tell them apart. it allows them to load with a warning, but does not attempt a complete 12-EDO conversion; notes, effects, and macros may be incorrect. save a copy before editing.
+- **unmarked `.fur` files are ambiguous.** vanilla Furnace files and 31-EDO files created before the dialect marker use the same vanilla magic, so this fork cannot tell them apart. it allows them to load with a warning, but does not attempt a complete 12-EDO conversion; notes, effects, and macros may be incorrect. their note bytes are placed in the migrated 180-slot window (shifted up by 217 slots), so they play at the same pitches previous fork builds gave them. save a copy before editing.
+
+- **older fork builds cannot read `FUR31ED2` files.** a build that only knows the `FUR31EDO` dialect fails cleanly on the widened `PATW` pattern block ("invalid pattern header!") instead of misreading it. `.fui` instruments saved by this fork carry format version 251 with 465-entry note maps; older builds read only the first 180 entries and skip the rest.
+
+- **FCS/ROM export keeps the legacy 180-slot window.** the binary command stream still encodes a note as one byte, covering slots 217 through 396 (the migrated span of the old domain, `C-2` through `Bbb7`). notes outside that window clamp to its edges on export. in-app FCS playback applies the same mapping in reverse, so command-stream playback stays in tune.
 
 - **foreign formats are imported without 31-EDO conversion.** notes from S3M, XM, MOD, FTM, Famicom Composer, and similar formats land on the same raw slot numbers they would in stock Furnace, which this fork then plays back as 31-EDO steps — so imported songs from other trackers will sound retuned, not preserved. only Furnace's own DMF import and old-format `.fur` import are adjusted to embed 12-EDO pitches into the nearest 31-EDO step.
 
 - **DMF export quantizes to 12-EDO.** exporting to DefleMask's `.dmf` format folds each 31-EDO step onto its nearest 12-EDO semitone (up to about 19.4 cents of error per note) so the exported file stays within DMF's fixed 12-tone note range. pitch relationships that depend on 31-EDO's finer grid (distinct sharps and flats, neutral-ish intervals) collapse in the export.
 
-- **the startup intro tune is native 31-EDO content.** its notes were hand-respelled for this fork rather than mechanically remapped at load time. the embedded module carries the same downstream magic and `FUR31EDO` tag as saved fork files, so it loads as native content without the unmarked-file warning.
+- **the startup intro tune is native 31-EDO content.** its notes were hand-respelled for this fork rather than mechanically remapped at load time. the embedded module carries the downstream magic with the legacy `FUR31EDO` tag, so it loads through the silent 217-slot migration as native content without the unmarked-file warning.
 
 - **`00xy` arpeggios are limited to 15-step offsets.** the arpeggio effect's two nibbles are each 4 bits (0 to 15), which was already narrow for expressing intervals in 12-EDO but becomes a harder ceiling here: a 31-EDO perfect fifth is 18 steps, three more than the nibble's maximum of 15. `00xy` arpeggios cannot express a fifth or anything wider; wider intervals require the pattern's note column itself, an instrument macro, or pitch effects instead.
 
 - **`E5xx` has a ±38.7-cent full-scale range.** `80` is neutral, `00` is one 31-EDO step (38.71 cents) down, and `FF` is nearly one step up; each change of one in `xx` is 1/128 of a step. existing patterns using `E5xx` for 12-EDO-scale pitch bends will bend by a different amount after conversion to this fork.
 
-- **the piano/input-pad widget stays 12-key-per-octave.** it remains a legacy 12-banded layout and does not attempt to expose all 31 steps of an octave as piano-style keys. it is still functional for coarse note entry and preview, but the Terpstra Keyboard window is the intended primary input surface for 31-EDO.
-
-- **the "use flats instead of sharps" and "use German notation" settings have no effect.** both settings assume a single-spelling 12-EDO note table where sharp and flat names are interchangeable respellings of the same pitch. in this fork, sharps, flats, double-sharps, and double-flats each name a distinct pitch with no ambiguity to resolve, so there is nothing for these settings to toggle; they remain present in the settings window for compatibility but have no visible effect on note display.
+- **the "use flats instead of sharps" setting has no effect.** it assumes a single-spelling 12-EDO note table where sharp and flat names are interchangeable respellings of the same pitch. in this fork, sharps, flats, double-sharps, and double-flats each name a distinct pitch with no ambiguity to resolve, so there is nothing for the setting to toggle. the "use German notation" setting does work: it renames Bbb/Bb/B/B# to Hbb/B/H/H# throughout the note display.

@@ -656,11 +656,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       const char* vanillaWarning="this module uses the unmarked vanilla .fur dialect. it may contain stock 12-EDO data or pre-marker 31-EDO data, so pitch values are loaded without a complete conversion. notes, effects, and macros may be incorrect. save a copy before editing.";
       logW("%s",vanillaWarning);
       addWarning(vanillaWarning);
-    } else if (variantID!=DIV_FUR_VARIANT_EDO31) {
+    } else if (variantID==DIV_FUR_VARIANT_EDO31) {
+      // first fork dialect: pitches migrate silently into the 465-slot domain
+      logD("Furnace 31-EDO module (legacy 180-slot dialect) detected");
+    } else if (variantID==DIV_FUR_VARIANT_EDO31V2) {
+      logD("Furnace 31-EDO module detected");
+    } else {
       logW("Furnace variant detected: %d",variantID);
       addWarning("this module was created with a downstream version of Furnace. certain features may not be compatible.");
-    } else {
-      logD("Furnace 31-EDO module detected");
     }
 
     if (ds.version>DIV_ENGINE_VERSION) {
@@ -1904,6 +1907,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     // read patterns
     for (unsigned int i: patPtr) {
       bool isNewFormat=false;
+      bool isWideFormat=false;
       if (!reader.seek(i,SEEK_SET)) {
         logE("couldn't seek to pattern in %x!",i);
         lastError=fmt::sprintf("couldn't seek to pattern in %x!",i);
@@ -1913,7 +1917,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
       reader.read(magic,4);
       logD("reading pattern in %x...",i);
-      if (strcmp(magic,"PATR")!=0) {
+      if (strcmp(magic,"PATW")==0) {
+        isNewFormat=true;
+        isWideFormat=true;
+      } else if (strcmp(magic,"PATR")!=0) {
         if (strcmp(magic,"PATN")!=0 || ds.version<157) {
           logE("%x: invalid pattern header!",i);
           lastError="invalid pattern header!";
@@ -1979,25 +1986,49 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           if (mask&16) effectMask|=2;
 
           if (mask&1) { // note
-            unsigned char note=reader.readC();
-            // TODO: PAT2 format with new off/===/rel values!
-            if (note==180) {
-              pat->newData[j][0]=DIV_NOTE_OFF;
-            } else if (note==181) {
-              pat->newData[j][0]=DIV_NOTE_REL;
-            } else if (note==182) {
-              pat->newData[j][0]=DIV_MACRO_REL;
-            } else if (note==183) {
-              pat->newData[j][0]=DIV_NOTE_RAW;
-              // read raw frequency
-              pat->newData[j][DIV_PAT_RAW0]=(unsigned char)reader.readC();
-              pat->newData[j][DIV_PAT_RAW1]=(unsigned char)reader.readC();
-              pat->newData[j][DIV_PAT_RAW2]=(unsigned char)reader.readC();
-              pat->newData[j][DIV_PAT_RAW3]=(unsigned char)reader.readC();
-            } else if (note<180) {
-              pat->newData[j][DIV_PAT_NOTE]=note;
+            if (isWideFormat) {
+              // PATW: 16-bit note. 0..464 is a pitch; control codes follow.
+              unsigned short note=reader.readS();
+              if (note==DIV_FUR_PATW_OFF) {
+                pat->newData[j][0]=DIV_NOTE_OFF;
+              } else if (note==DIV_FUR_PATW_REL) {
+                pat->newData[j][0]=DIV_NOTE_REL;
+              } else if (note==DIV_FUR_PATW_MACRO_REL) {
+                pat->newData[j][0]=DIV_MACRO_REL;
+              } else if (note==DIV_FUR_PATW_RAW) {
+                pat->newData[j][0]=DIV_NOTE_RAW;
+                // read raw frequency
+                pat->newData[j][DIV_PAT_RAW0]=(unsigned char)reader.readC();
+                pat->newData[j][DIV_PAT_RAW1]=(unsigned char)reader.readC();
+                pat->newData[j][DIV_PAT_RAW2]=(unsigned char)reader.readC();
+                pat->newData[j][DIV_PAT_RAW3]=(unsigned char)reader.readC();
+              } else if (note<DIV_EDO31_NOTE_COUNT) {
+                pat->newData[j][DIV_PAT_NOTE]=note;
+              } else {
+                pat->newData[j][0]=-1;
+              }
             } else {
-              pat->newData[j][0]=-1;
+              // PATN: byte-sized note in the legacy 180-slot domain.
+              // pitches migrate silently into the 465-slot domain.
+              unsigned char note=reader.readC();
+              if (note==180) {
+                pat->newData[j][0]=DIV_NOTE_OFF;
+              } else if (note==181) {
+                pat->newData[j][0]=DIV_NOTE_REL;
+              } else if (note==182) {
+                pat->newData[j][0]=DIV_MACRO_REL;
+              } else if (note==183) {
+                pat->newData[j][0]=DIV_NOTE_RAW;
+                // read raw frequency
+                pat->newData[j][DIV_PAT_RAW0]=(unsigned char)reader.readC();
+                pat->newData[j][DIV_PAT_RAW1]=(unsigned char)reader.readC();
+                pat->newData[j][DIV_PAT_RAW2]=(unsigned char)reader.readC();
+                pat->newData[j][DIV_PAT_RAW3]=(unsigned char)reader.readC();
+              } else if (note<180) {
+                pat->newData[j][DIV_PAT_NOTE]=note+DIV_EDO31_LEGACY_OFFSET;
+              } else {
+                pat->newData[j][0]=-1;
+              }
             }
           }
           if (mask&2) { // instrument
@@ -2512,7 +2543,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeI(32);
 
   // fork dialect tag (reserved in stock Furnace)
-  w->write(DIV_FUR_TAG_EDO31,8);
+  w->write(DIV_FUR_TAG_EDO31V2,8);
 
   // high short is channel
   // low short is pattern number
@@ -2768,7 +2799,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     DivPattern* pat=song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat,false);
     patPtr.push_back(w->tell());
 
-    w->write("PATN",4);
+    w->write("PATW",4);
     blockStartSeek=w->tell();
     w->writeI(0);
 
@@ -2781,24 +2812,24 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
     for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
       unsigned char mask=0;
-      unsigned char finalNote=255;
+      int finalNote=-1;
       unsigned short effectMask=0;
 
       if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_OFF) { // note off
-        finalNote=180;
+        finalNote=DIV_FUR_PATW_OFF;
       } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_REL) { // note release
-        finalNote=181;
+        finalNote=DIV_FUR_PATW_REL;
       } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_MACRO_REL) { // macro release
-        finalNote=182;
+        finalNote=DIV_FUR_PATW_MACRO_REL;
       } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_RAW) { // raw frequency
-        finalNote=183;
+        finalNote=DIV_FUR_PATW_RAW;
       } else if (pat->newData[j][DIV_PAT_NOTE]==-1) { // empty
-        finalNote=255;
+        finalNote=-1;
       } else {
         finalNote=pat->newData[j][DIV_PAT_NOTE];
       }
 
-      if (finalNote!=255) mask|=1; // note
+      if (finalNote!=-1) mask|=1; // note
       if (pat->newData[j][DIV_PAT_INS]!=-1) mask|=2; // instrument
       if (pat->newData[j][DIV_PAT_VOL]!=-1) mask|=4; // volume
       for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k+=2) {
@@ -2836,8 +2867,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
         if (mask&64) w->writeC((effectMask>>8)&0xff);
 
         if (mask&1) {
-          w->writeC(finalNote);
-          if (finalNote==183) { // write raw frequency
+          w->writeS(finalNote);
+          if (finalNote==DIV_FUR_PATW_RAW) { // write raw frequency
             w->writeC(pat->newData[j][DIV_PAT_RAW0]);
             w->writeC(pat->newData[j][DIV_PAT_RAW1]);
             w->writeC(pat->newData[j][DIV_PAT_RAW2]);

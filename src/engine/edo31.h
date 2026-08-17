@@ -17,17 +17,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// 31-EDO fork: shared constants and helpers for reinterpreting the 180-slot
-// note space as 31 equal divisions of the octave.
+// 31-EDO fork: shared constants and helpers for the 465-slot note space
+// covering 15 complete octaves of 31 equal divisions each.
 //
-// slot = 31*(octave-2) + step, step in [0,30]. octave digits run 2..7.
-// slot 62 = middle C ("C-4"). slot 85 = A-4 = song.tuning Hz.
-// freq(slot) = tuning * 2^((slot-85)/31).
+// slot = 31*(octave+5) + step, step in [0,30]. octave digits run -5..9.
+// slot 279 = middle C ("C-4"). slot 302 = A-4 = song.tuning Hz.
+// freq(slot) = tuning * 2^((slot-302)/31).
+//
+// the first fork dialect (FUR31EDO) kept upstream's 180-slot domain with
+// slot 0 = C-2; those files migrate by adding DIV_EDO31_LEGACY_OFFSET.
 //
 // spelling is chain-of-fifths meantone: 7 naturals, 7 sharps, 7 flats,
 // 5 double sharps (Cx Dx Fx Gx Ax) and 5 double flats (Dbb Ebb Gbb Abb Bbb).
 // the octave digit follows the letter name (scientific pitch), so Cb (step 29)
 // takes the digit of the C above it; B# (step 30) keeps its own chunk's digit.
+// negative octaves render with a lowercase letter and the absolute digit
+// ("c-5 " is C of octave -5); slot 463 is the lone octave-10 name, "Cb10".
 
 #ifndef _EDO31_H
 #define _EDO31_H
@@ -35,11 +40,16 @@
 #include <cmath>
 
 #define DIV_EDO31_STEPS 31
-#define DIV_EDO31_NOTE_COUNT 180
+#define DIV_EDO31_OCTAVES 15
+#define DIV_EDO31_NOTE_COUNT (DIV_EDO31_STEPS*DIV_EDO31_OCTAVES)
 #define DIV_EDO31_MAX_SLOT (DIV_EDO31_NOTE_COUNT-1)
-#define DIV_EDO31_MIDDLE_C 62
-#define DIV_EDO31_A4 85
+#define DIV_EDO31_BASE_OCTAVE (-5)
+#define DIV_EDO31_MIDDLE_C (DIV_EDO31_STEPS*(4-DIV_EDO31_BASE_OCTAVE))
+#define DIV_EDO31_A4 (DIV_EDO31_MIDDLE_C+23)
 #define DIV_EDO31_A_STEP (DIV_EDO31_A4%DIV_EDO31_STEPS)
+// slot n in the 180-slot FUR31EDO dialect equals slot n+217 here
+#define DIV_EDO31_LEGACY_OFFSET (DIV_EDO31_STEPS*(2-DIV_EDO31_BASE_OCTAVE))
+#define DIV_EDO31_LEGACY_NOTE_COUNT 180
 // one octave in 8.7 fixed-point units (31*128)
 #define DIV_EDO31_OCTAVE_LINEAR 3968
 
@@ -105,25 +115,42 @@ static inline double edo31RetuneForReference(double tuning, int oldStep, int new
   );
 }
 
-// octave digit shown for a slot (2..7, or 8 for the top Cb edge case if it
-// ever comes into range; slot 179 is Bbb-7 so it does not today)
+// octave digit shown for a slot (-5..9, or 10 for the top Cb: slot 463)
 static inline int edo31Octave(int slot) {
-  int oct=(slot/31)+2;
+  int oct=(slot/31)+DIV_EDO31_BASE_OCTAVE;
   if ((slot%31)==29) oct++; // Cb belongs to the octave of the C above it
   return oct;
 }
 
 // writes the fixed 4-byte pattern-cell representation (plus NUL) into out[5]:
 // naturals "C-4 ", two-char names "C#4 ", three-char names "Dbb4".
-static inline void edo31FormatNote(int slot, char* out) {
-  const char* n=edo31Names[slot%31];
+// negative octaves lowercase the letter and drop the sign ("c-5 " is C of
+// octave -5, "dbb5" is Dbb of octave -5); octave 10 only occurs for the
+// two-char name Cb ("Cb10").
+// an optional name override (nameTable) substitutes the step spelling, for
+// German notation; entries must stay within three characters.
+static inline void edo31FormatNote(int slot, char* out, const char* const* nameTable=NULL) {
+  const char* n=(nameTable?nameTable:edo31Names)[slot%31];
   int oct=edo31Octave(slot);
+  char letter=n[0];
+  if (oct<0) {
+    letter+='a'-'A';
+    oct=-oct;
+  }
   if (n[1]==0) { // natural
-    out[0]=n[0]; out[1]='-'; out[2]='0'+oct; out[3]=' ';
+    if (oct>=10) {
+      out[0]=letter; out[1]='1'; out[2]='0'+(oct-10); out[3]=' ';
+    } else {
+      out[0]=letter; out[1]='-'; out[2]='0'+oct; out[3]=' ';
+    }
   } else if (n[2]==0) { // single accidental or x
-    out[0]=n[0]; out[1]=n[1]; out[2]='0'+oct; out[3]=' ';
-  } else { // double flat
-    out[0]=n[0]; out[1]=n[1]; out[2]=n[2]; out[3]='0'+oct;
+    if (oct>=10) {
+      out[0]=letter; out[1]=n[1]; out[2]='1'; out[3]='0'+(oct-10);
+    } else {
+      out[0]=letter; out[1]=n[1]; out[2]='0'+oct; out[3]=' ';
+    }
+  } else { // double flat (never reaches octave 10)
+    out[0]=letter; out[1]=n[1]; out[2]=n[2]; out[3]='0'+oct;
   }
   out[4]=0;
 }

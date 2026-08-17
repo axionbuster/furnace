@@ -84,7 +84,7 @@ void FurnaceGUI::drawTerpstra() {
   // closed or collapsed while a hex is held) the held notes would drone forever,
   // so sweep them here instead.
   auto releaseHeld=[this]() {
-    for (int i=0; i<180; i++) {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
       if (!terpstraKeyPressed[i]) continue;
       terpstraKeyPressed[i]=false;
       int note=i;
@@ -110,9 +110,9 @@ void FurnaceGUI::drawTerpstra() {
     ImVec2(canvasW,canvasH)
   );
   if (ImGui::Begin("Terpstra Keyboard",&terpstraOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse,_("Terpstra Keyboard"))) {
-    bool oldTerpstraKeyPressed[180];
-    memcpy(oldTerpstraKeyPressed,terpstraKeyPressed,180*sizeof(bool));
-    memset(terpstraKeyPressed,0,180*sizeof(bool));
+    bool oldTerpstraKeyPressed[DIV_EDO31_NOTE_COUNT];
+    memcpy(oldTerpstraKeyPressed,terpstraKeyPressed,DIV_EDO31_NOTE_COUNT*sizeof(bool));
+    memset(terpstraKeyPressed,0,DIV_EDO31_NOTE_COUNT*sizeof(bool));
 
     // reverse noteKeys lookup for the QWERTY badges
     char keyBadge[97];
@@ -371,15 +371,15 @@ void FurnaceGUI::drawTerpstra() {
         terpstraRound(fq,fr,q,r);
         int note=DIV_EDO31_MIDDLE_C+5*q+2*r;
         if (note<0) continue;
-        if (note>=180) continue;
+        if (note>=DIV_EDO31_NOTE_COUNT) continue;
         terpstraKeyPressed[note]=true;
       }
 
-      bool physicalKeyPressed[180];
+      bool physicalKeyPressed[DIV_EDO31_NOTE_COUNT];
       bool pitchClassPressed[31];
-      int inputChannel[180];
+      int inputChannel[DIV_EDO31_NOTE_COUNT];
       int pitchClassChannel[31];
-      size_t inputAge[180];
+      size_t inputAge[DIV_EDO31_NOTE_COUNT];
       memset(physicalKeyPressed,0,sizeof(physicalKeyPressed));
       memset(pitchClassPressed,0,sizeof(pitchClassPressed));
       memset(inputChannel,-1,sizeof(inputChannel));
@@ -387,7 +387,7 @@ void FurnaceGUI::drawTerpstra() {
       memset(inputAge,0,sizeof(inputAge));
       for (int i=0; i<SDL_NUM_SCANCODES; i++) {
         int note=terpstraPreviewNote[i];
-        if (note>=0 && note<180) physicalKeyPressed[note]=true;
+        if (note>=0 && note<DIV_EDO31_NOTE_COUNT) physicalKeyPressed[note]=true;
       }
 
       // resolve a held preview note back to the actual channel selected by
@@ -395,14 +395,14 @@ void FurnaceGUI::drawTerpstra() {
       // routes away from the cursor channel as well as in mono mode.
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivChannelState* chanState=e->getChanState(i);
-        if (chanState==NULL || chanState->midiNote<0 || chanState->midiNote>=180) continue;
+        if (chanState==NULL || chanState->midiNote<0 || chanState->midiNote>=DIV_EDO31_NOTE_COUNT) continue;
         int note=chanState->midiNote;
         if (inputChannel[note]<0 || chanState->midiAge>=inputAge[note]) {
           inputChannel[note]=i;
           inputAge[note]=chanState->midiAge;
         }
       }
-      for (int note=0; note<180; note++) {
+      for (int note=0; note<DIV_EDO31_NOTE_COUNT; note++) {
         if (terpstraKeyPressed[note] || physicalKeyPressed[note]) {
           int inputChan=inputChannel[note];
           if (inputChan<0 && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount()) {
@@ -419,13 +419,13 @@ void FurnaceGUI::drawTerpstra() {
       // muted channels do not contribute a light. recompute this every frame
       // so stopping playback and changing a channel's pitch clear the old
       // cells without requiring a separate latch to maintain.
-      int playbackChannel[180];
+      int playbackChannel[DIV_EDO31_NOTE_COUNT];
       memset(playbackChannel,-1,sizeof(playbackChannel));
       if (e->isRunning()) {
         for (int i=0; i<e->getTotalChannelCount(); i++) {
           DivChannelState* chanState=e->getChanState(i);
           if (e->isChannelMuted(i) || chanState==NULL || !chanState->keyOn) continue;
-          if (chanState->note>=0 && chanState->note<180) {
+          if (chanState->note>=0 && chanState->note<DIV_EDO31_NOTE_COUNT) {
             playbackChannel[chanState->note]=i;
           }
         }
@@ -473,7 +473,7 @@ void FurnaceGUI::drawTerpstra() {
           if (pos.x<rect.Min.x-hexSize || pos.x>rect.Max.x+hexSize) continue;
           if (pos.y<rect.Min.y-hexSize || pos.y>rect.Max.y+hexSize) continue;
           int note=DIV_EDO31_MIDDLE_C+5*q+2*r;
-          bool inRange=(note>=0 && note<180);
+          bool inRange=(note>=0 && note<DIV_EDO31_NOTE_COUNT);
 
           ImVec2 points[6];
           for (int i=0; i<6; i++) {
@@ -547,7 +547,7 @@ void FurnaceGUI::drawTerpstra() {
           ImVec2 octaveSize=mainFont->CalcTextSizeA(smallSize,FLT_MAX,0.0f,octave);
           dl->AddText(mainFont,smallSize,ImVec2(pos.x+hexSize*0.44f-octaveSize.x,pos.y-hexSize*0.62f),textColor,octave);
 
-          int key=note-DIV_EDO31_STEPS*(curOctave-2)-(5*terpstraAnchorQ+2*terpstraAnchorR);
+          int key=note-DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)-(5*terpstraAnchorQ+2*terpstraAnchorR);
           if (key>=0 && key<=96 && keyBadge[key]) {
             char badge[2];
             badge[0]=keyBadge[key];
@@ -567,7 +567,7 @@ void FurnaceGUI::drawTerpstra() {
     }
 
     // first check released keys
-    for (int i=0; i<180; i++) {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
       int note=i;
       if (!terpstraKeyPressed[i]) {
         if (terpstraKeyPressed[i]!=oldTerpstraKeyPressed[i]) {
@@ -579,7 +579,7 @@ void FurnaceGUI::drawTerpstra() {
       }
     }
     // then pressed ones
-    for (int i=0; i<180; i++) {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
       int note=i;
       if (terpstraKeyPressed[i]) {
         if (terpstraKeyPressed[i]!=oldTerpstraKeyPressed[i]) {

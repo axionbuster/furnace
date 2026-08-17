@@ -22,6 +22,7 @@
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include "defines.h"
+#include "edo31.h"
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
@@ -538,7 +539,7 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-  SampleMap noteMap[180];
+  SampleMap noteMap[DIV_EDO31_NOTE_COUNT];
 
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
@@ -553,7 +554,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note&DIV_NOTE_RAW_FLAG) return initSample;
       if (note<0) note=0;
-      if (note>179) note=179;
+      if (note>DIV_EDO31_MAX_SLOT) note=DIV_EDO31_MAX_SLOT;
       return noteMap[note].map;
     }
     return initSample;
@@ -567,7 +568,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note&DIV_NOTE_RAW_FLAG) return note;
       if (note<0) note=0;
-      if (note>179) note=179;
+      if (note>DIV_EDO31_MAX_SLOT) note=DIV_EDO31_MAX_SLOT;
       return noteMap[note].freq;
     }
     return note;
@@ -581,7 +582,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note&DIV_NOTE_RAW_FLAG) return note;
       if (note<0) note=0;
-      if (note>179) note=179;
+      if (note>DIV_EDO31_MAX_SLOT) note=DIV_EDO31_MAX_SLOT;
       return noteMap[note].dpcmFreq;
     }
     return -1;
@@ -595,7 +596,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note&DIV_NOTE_RAW_FLAG) return -1;
       if (note<0) note=0;
-      if (note>179) note=179;
+      if (note>DIV_EDO31_MAX_SLOT) note=DIV_EDO31_MAX_SLOT;
       return noteMap[note].dpcmDelta;
     }
     return -1;
@@ -607,7 +608,7 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    for (int i=0; i<180; i++) {
+    for (int i=0; i<DIV_EDO31_NOTE_COUNT; i++) {
       noteMap[i].map=-1;
       noteMap[i].freq=i;
     }
@@ -963,13 +964,13 @@ struct DivInstrumentSID3 {
     bool absoluteCutoff;
     bool bindCutoffToNote;
     unsigned char bindCutoffToNoteStrength; // how much cutoff changes over e.g. one 31-EDO step
-    unsigned char bindCutoffToNoteCenter; // central note of the cutoff change
+    unsigned short bindCutoffToNoteCenter; // central note of the cutoff change
     bool bindCutoffToNoteDir; // if we decrease or increase cutoff if e.g. we go upper in note space
     bool bindCutoffOnNote; // only do cutoff scaling once, on new note
 
     bool bindResonanceToNote;
     unsigned char bindResonanceToNoteStrength; // how much resonance changes over e.g. one 31-EDO step
-    unsigned char bindResonanceToNoteCenter; // central note of the resonance change
+    unsigned short bindResonanceToNoteCenter; // central note of the resonance change
     bool bindResonanceToNoteDir; // if we decrease or increase resonance if e.g. we go upper in note space
     bool bindResonanceOnNote; // only do resonance scaling once, on new note
 
@@ -1234,6 +1235,14 @@ struct DivInstrument: DivInstrumentPOD {
 
   void convertC64SpecialMacro();
   void convertOldADSRLFO();
+
+  /**
+   * migrate absolute note values (sample/DPCM note maps, SID3 filter bind
+   * centers) from the legacy 180-slot domain into the 465-slot domain.
+   * called for instruments read from files older than
+   * DIV_ENGINE_VERSION_EDO31V2.
+   */
+  void migrateLegacyNoteDomain();
 
   bool compileWaveSynth(SafeWriter* w);
   bool compileSampleMap(SafeWriter* w, bool nes);

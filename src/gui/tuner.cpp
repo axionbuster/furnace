@@ -96,7 +96,7 @@ void FurnaceGUI::drawTuner() {
     double cents=0.0f;
     String noteText="---", subtext="";
     if (freq>0 && freq<5000.0) {
-      noteExact=CLAMP(log2(freq/e->song.tuning)*31.0+85.0,0,179);
+      noteExact=CLAMP(log2(freq/e->song.tuning)*DIV_EDO31_STEPS+DIV_EDO31_A4,0,DIV_EDO31_MAX_SLOT);
       noteRounded=round(noteExact);
       cents=(noteExact-noteRounded);
       noteText=fmt::sprintf("%s",noteName(noteRounded));

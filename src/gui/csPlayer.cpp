@@ -26,7 +26,8 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
   if (addr>=bufLen) return "???";
 
   if (buf[addr]<0xb4) {
-    return fmt::sprintf("note %s",noteNames[buf[addr]]);
+    // FCS notes are stored in the legacy 180-slot window
+    return fmt::sprintf("note %s",noteNames[buf[addr]+DIV_EDO31_LEGACY_OFFSET]);
   } else switch (buf[addr]) {
     case 0xb4:
       return "note null";

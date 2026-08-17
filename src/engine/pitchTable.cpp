@@ -178,15 +178,15 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
   period=isPeriod;
   linearity=isLinear;
   maxFreq=maximum;
-  // the 31-EDO note space is 6 octaves wide instead of 15, so the shift range is
-  // the stock 0..14 one biased by -7. this keeps A-4 (slot 85) landing on the very
-  // same table entry and octave shift stock Furnace used for A-4 (slot 117), so
-  // the value there comes out bit-identical.
-  shift=period?-7:7;
+  // the 31-EDO note space is 15 octaves wide like stock's, and A-4 (slot 302)
+  // sits in octave block 9 exactly as stock's A-4 (slot 117) did, so the stock
+  // 0..14 shift range applies unchanged and the A-4 table value comes out
+  // bit-identical.
+  shift=period?0:14;
 
   // adjust the shift value so that the highest (or lowest in period mode) note has the highest period/freq
   if (period) {
-    while (shift<7) {
+    while (shift<14) {
       int nbase=(shift+1)*DIV_EDO31_STEPS;
       double fbase=(tuning*0.0625)*pow(2.0,(double)(nbase-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+5.0);
       int bf=round((clock/fbase)/divider);
@@ -194,7 +194,7 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
       shift++;
     }
   } else {
-    while (shift>-7) {
+    while (shift>0) {
       int nbase=shift*DIV_EDO31_STEPS;
       double fbase=tuning*pow(2.0,(double)(nbase-DIV_EDO31_A4)/(double)DIV_EDO31_STEPS+5.0);
       int bf=round(fbase*(divider/clock));

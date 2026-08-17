@@ -115,10 +115,12 @@ size | description
   2  | format version
   2  | reserved
   4  | song info pointer
-  8  | "FUR31EDO" dialect tag
+  8  | "FUR31ED2" dialect tag
 ```
 
 this 31-EDO fork writes the downstream magic and dialect tag above. stock Furnace recognizes the magic and warns when opening the file, but ignores the tag and interprets pitch data as 12-EDO. the vanilla magic `-Furnace module-` and eight zero reserved bytes identify unmarked files; this fork accepts them with a warning because stock 12-EDO files cannot be distinguished from 31-EDO files created before the dialect marker.
+
+the current dialect tag is `FUR31ED2` (format version 251): the note domain is 465 slots (15 octaves of 31-EDO), patterns are stored in `PATW` blocks with a 16-bit note field (0-464 pitch; 465 off, 466 release, 467 macro release, 468 raw frequency), and instrument note maps hold 465 entries. the earlier tag `FUR31EDO` (format version 250) used the 180-slot domain with `PATN` blocks; those files load with every absolute note value shifted up by 217 slots, and are re-saved in the current dialect.
 
 # song info (>=240)
 
@@ -532,6 +534,16 @@ size | description
 ```
 
 # pattern (>=157)
+
+this fork's current dialect (`FUR31ED2`, version 251) writes `PATW` blocks instead. a `PATW` block is identical to `PATN` below except that the note field is a 16-bit little-endian value:
+
+- 0 through 464 are consecutive 31-EDO steps (0 is C of octave -5, 464 is B#9)
+- 465 is note off
+- 466 is note release
+- 467 is macro release
+- 468 is raw frequency, followed by a 32-bit int
+
+`PATN` blocks (one-byte notes, legacy 180-slot domain) are still read; their pitch values are shifted up by 217 slots on load.
 
 ```
 size | description

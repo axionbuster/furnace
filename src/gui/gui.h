@@ -152,8 +152,9 @@ enum FurnaceGUIRenderBackend {
 #define ngettext momo_ngettext
 #endif
 
-#define GUI_EDIT_OCTAVE_MIN 2
-#define GUI_EDIT_OCTAVE_MAX 7
+// the full 465-slot domain: C of octave -5 up to B#9 (octave blocks -5..9)
+#define GUI_EDIT_OCTAVE_MIN DIV_EDO31_BASE_OCTAVE
+#define GUI_EDIT_OCTAVE_MAX (DIV_EDO31_BASE_OCTAVE+DIV_EDO31_OCTAVES-1)
 
 // chromatic rows: ZXCVBNM,./ are steps 0-9, ASDFGHJKL;' are 10-20,
 // QWERTYUIOP are 21-30 and the number row continues from there. a standard
@@ -2938,7 +2939,7 @@ class FurnaceGUI {
   bool followLog;
 
   // Terpstra keyboard
-  bool terpstraKeyPressed[180];
+  bool terpstraKeyPressed[DIV_EDO31_NOTE_COUNT];
   int terpstraPreviewNote[SDL_NUM_SCANCODES];
   int terpstraAnchorQ, terpstraAnchorR, terpstraColorMode;
   float terpstraPanX, terpstraPanY, terpstraZoom;

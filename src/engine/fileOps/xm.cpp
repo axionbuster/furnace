@@ -559,7 +559,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logV("sample header size: %d",sampleHeaderSize);
         for (int j=0; j<96; j++) {
           unsigned char nextMap=reader.readC();
-          ins->amiga.noteMap[j+60].map=ds.sample.size()+nextMap;
+          ins->amiga.noteMap[j+60+DIV_EDO31_LEGACY_OFFSET].map=ds.sample.size()+nextMap;
           noteMap[(i<<7)|j]=nextMap;
         }
 
@@ -907,7 +907,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
                 p->newData[j][DIV_PAT_NOTE]=DIV_NOTE_REL;
               } else {
                 note--;
-                p->newData[j][DIV_PAT_NOTE]=note+60;
+                p->newData[j][DIV_PAT_NOTE]=note+60+DIV_EDO31_LEGACY_OFFSET;
               }
             }
           }

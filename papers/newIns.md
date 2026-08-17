@@ -472,7 +472,7 @@ size | description
      | - bit 1: use sample
      | - bit 0: use sample map
   1  | waveform length
- 4?? | sample map... (120 entries (<246) or 180 entries (>=246))
+ 4?? | sample map... (120 entries (<246), 180 entries (>=246), or 465 entries (>=251, this fork))
      | - only read if sample map is enabled
 ```
 
@@ -733,7 +733,7 @@ size | description
 size | description
 -----|------------------------------------
   1  | use sample map
- 2?? | DPCM sample map... (120 entries (<246) or 180 entries (>=246))
+ 2?? | DPCM sample map... (120 entries (<246), 180 entries (>=246), or 465 entries (>=251, this fork))
      | - only read if sample map is enabled
 ```
 
