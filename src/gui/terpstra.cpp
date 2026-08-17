@@ -127,6 +127,12 @@ void FurnaceGUI::drawTerpstra() {
       keyBadge[i.second]=keyName[0];
     }
 
+    // the QWERTY keys only pick up the guide offset while this window holds
+    // focus, and the note-preview path decides that from curWindowThreadSafe.
+    // read the same value here so the badges always name the cell its key
+    // reaches right now, instead of the one it would reach if focus moved.
+    const int guideOffset=(curWindowThreadSafe==GUI_WINDOW_TERPSTRA)?(5*terpstraAnchorQ+2*terpstraAnchorR):0;
+
     ImGuiIO& io=ImGui::GetIO();
     auto tooltip=[](const char* description) {
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s",description);
@@ -186,12 +192,6 @@ void FurnaceGUI::drawTerpstra() {
     ImGui::SameLine();
     if (ImGui::SmallButton(_("Oct+##TerpstraGuideOctaveUp"))) moveGuide(7,-2);
     tooltip(_("Move the guide up one octave"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(_("5th-##TerpstraGuideFifthDown"))) moveGuide(-4,1);
-    tooltip(_("Move the guide down one fifth"));
-    ImGui::SameLine();
-    if (ImGui::SmallButton(_("5th+##TerpstraGuideFifthUp"))) moveGuide(4,-1);
-    tooltip(_("Move the guide up one fifth"));
 
     ImGui::SameLine();
     ImGui::TextDisabled("|");
@@ -262,10 +262,7 @@ void FurnaceGUI::drawTerpstra() {
         } else if (io.KeyShift) {
           if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-7,2);
           if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(7,-2);
-        } else if (io.KeyAlt) {
-          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-4,1);
-          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(4,-1);
-        } else {
+        } else if (!io.KeyAlt) {
           if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) moveGuide(-1,0);
           if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) moveGuide(1,0);
           if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) moveGuide(0,1);
@@ -393,7 +390,7 @@ void FurnaceGUI::drawTerpstra() {
       memset(inputChannel,-1,sizeof(inputChannel));
       memset(inputAge,0,sizeof(inputAge));
       for (int i=0; i<SDL_NUM_SCANCODES; i++) {
-        int note=terpstraPreviewNote[i];
+        int note=keyPreviewNote[i];
         if (note>=0 && note<DIV_EDO31_NOTE_COUNT) physicalKeyPressed[note]=true;
       }
 
@@ -572,7 +569,7 @@ void FurnaceGUI::drawTerpstra() {
           ImVec2 octaveSize=mainFont->CalcTextSizeA(smallSize,FLT_MAX,0.0f,octave);
           dl->AddText(mainFont,smallSize,ImVec2(pos.x+hexSize*0.44f-octaveSize.x,pos.y-hexSize*0.62f),textColor,octave);
 
-          int key=note-DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)-(5*terpstraAnchorQ+2*terpstraAnchorR);
+          int key=note-DIV_EDO31_STEPS*(curOctave-DIV_EDO31_BASE_OCTAVE)-guideOffset;
           if (key>=0 && key<=96 && keyBadge[key]) {
             char badge[2];
             badge[0]=keyBadge[key];

@@ -1415,9 +1415,9 @@ void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
 }
 
 void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
-  if (scancode>=0 && scancode<SDL_NUM_SCANCODES && terpstraPreviewNote[scancode]>=0) {
-    int num=terpstraPreviewNote[scancode];
-    terpstraPreviewNote[scancode]=-1;
+  if (scancode>=0 && scancode<SDL_NUM_SCANCODES && keyPreviewNote[scancode]>=0) {
+    int num=keyPreviewNote[scancode];
+    keyPreviewNote[scancode]=-1;
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
       failedNoteOn=false;
@@ -4286,8 +4286,12 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (num>DIV_EDO31_MAX_SLOT) num=DIV_EDO31_MAX_SLOT; // B#9
 
             if (key!=100 && key!=101 && key!=102 && key!=103) {
-              if (curWindowThreadSafe==GUI_WINDOW_TERPSTRA && ev->key.keysym.scancode>=0 && ev->key.keysym.scancode<SDL_NUM_SCANCODES) {
-                terpstraPreviewNote[ev->key.keysym.scancode]=num;
+              // record the note this key actually started regardless of which
+              // window has focus: the Terpstra keyboard lights its cell from
+              // here, so a note played while another window is focused is
+              // still acknowledged there.
+              if (ev->key.keysym.scancode>=0 && ev->key.keysym.scancode<SDL_NUM_SCANCODES) {
+                keyPreviewNote[ev->key.keysym.scancode]=num;
               }
               previewNote(cursor.xCoarse,num);
             }
@@ -10122,7 +10126,7 @@ FurnaceGUI::FurnaceGUI():
   memset(lastAudioLoads,0,sizeof(float)*120);
 
   memset(terpstraKeyPressed,0,sizeof(terpstraKeyPressed));
-  for (int i=0; i<SDL_NUM_SCANCODES; i++) terpstraPreviewNote[i]=-1;
+  for (int i=0; i<SDL_NUM_SCANCODES; i++) keyPreviewNote[i]=-1;
 
   memset(queryReplaceEffectMode,0,sizeof(int)*8);
   memset(queryReplaceEffectValMode,0,sizeof(int)*8);

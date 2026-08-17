@@ -2938,9 +2938,13 @@ class FurnaceGUI {
   // log window
   bool followLog;
 
+  // note each note key is currently previewing, or -1. filled no matter which
+  // window has focus, so the note-off on release cannot drift when the octave
+  // changes mid-hold, and the Terpstra lights the cell the key really hit.
+  int keyPreviewNote[SDL_NUM_SCANCODES];
+
   // Terpstra keyboard
   bool terpstraKeyPressed[DIV_EDO31_NOTE_COUNT];
-  int terpstraPreviewNote[SDL_NUM_SCANCODES];
   int terpstraAnchorQ, terpstraAnchorR, terpstraColorMode;
   float terpstraPanX, terpstraPanY, terpstraZoom;
   ImVec4 terpstraColor;
