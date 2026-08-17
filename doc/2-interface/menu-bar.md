@@ -131,7 +131,7 @@ all these menu items show or hide their associated windows.
   - **[memory composition](../8-advanced/memory-composition.md)**
 - **[effect list](../3-pattern/effects.md)**
 - **[play/edit controls](play-edit-controls.md)**
-- **[piano/input pad](../8-advanced/piano.md)**
+- **[Terpstra keyboard](../31-edo.md#terpstra-keyboard-window)**
 - **[reference music player](../8-advanced/refPlayer.md)**
 - **[multi-ins setup](../8-advanced/multi-ins.md)**
 

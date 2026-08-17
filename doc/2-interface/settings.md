@@ -456,7 +456,7 @@ these files are not distributed with Furnace as they are under copyright. you sh
   - **Stereo**
   - **Real**
   - **Real (stereo)**
-- **Channel feedback style:** sets how channel headers and piano keys highlight.
+- **Channel feedback style:** sets how channel headers highlight.
   - **Off**: no indicator.
   - **Note**: flash at the start of a note, then fades.
   - **Volume**: change intensity with channel volume.

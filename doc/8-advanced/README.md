@@ -30,7 +30,7 @@ as listed in the "Window" menu:
   - [register view](../8-advanced/regview.md)
   - [statistics](../8-advanced/stats.md)
   - [memory composition](../8-advanced/memory-composition.md)
-- [piano/input pad](../8-advanced/piano.md)
+- [Terpstra keyboard](../31-edo.md#terpstra-keyboard-window)
 - [reference music player](../8-advanced/refPlayer.md)
 - [multi-ins setup](../8-advanced/multi-ins.md)
 
