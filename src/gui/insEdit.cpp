@@ -7072,7 +7072,7 @@ void FurnaceGUI::drawInsEdit() {
       if (ImGui::BeginTabBar("insEditTab")) {
         std::vector<FurnaceGUIMacroDesc> macroList;
 
-        if (ins->type==DIV_INS_KLATTSCH) if (ImGui::BeginTabItem("Klattsch")) {
+        if (ins->type==DIV_INS_KLATTSCH) if (ImGui::BeginTabItem("klattsch")) {
           ImGui::TextWrapped(_("These defaults shape the phoneme-bank voice. Pattern effects override them; reset values return to this profile."));
           ImGui::Separator();
 
@@ -7174,7 +7174,8 @@ void FurnaceGUI::drawInsEdit() {
               }
               if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
                 macroList.push_back(FurnaceGUIMacroDesc(_("OpMask"),&ins->std.ex4Macro,0,4,128,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,fmOperatorBits));
-              } else if (ins->type==DIV_INS_OPZ) {
+              }
+              if (ins->type==DIV_INS_OPZ) {
                 macroList.push_back(FurnaceGUIMacroDesc(_("AM Depth 2"),&ins->std.ex5Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("PM Depth 2"),&ins->std.ex6Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO2 Speed"),&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));

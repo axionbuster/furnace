@@ -86,6 +86,7 @@ these macros allow you to control several parameters of FM per tick.
 - **PM Depth 2**: pitch modulation depth (second LFO).
 - **LFO2 Speed**: LFO 2 frequency.
 - **LFO2 Shape**: LFO 2 shape. choose between saw, square, triangle, and random.
+- **OpMask**: toggles each operator.
 
 ## OP1-OP4 Macros
 
@@ -95,7 +96,7 @@ most parameters are listed above.
 
 - **Arpeggio**: pitch change sequence in 31-EDO steps.
 - **Noise Frequency**: specifies the noise frequency.
-  - this only applies to operator 4 of channel 8!
+  - this is only used for the LFOs! unlike OPM, it does not output on any channel at all.
 - **Panning**: toggles output on left and right channels.
 - **Pitch**: fine pitch.
   - **Relative**: when enabled, pitch changes are relative to the current pitch.

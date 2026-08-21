@@ -30,9 +30,9 @@
 #define ADDR_FMS2_AMS2 0x140
 
 const char* regCheatSheetOPZ[]={
-  "Test", "00",
+  "RampPeriod", "00",
   "NoteCtl", "08",
-  "NoiseCtl", "0F",
+  "Test", "09",
   "ClockA1", "10",
   "ClockA2", "11",
   "ClockB", "12",
@@ -1172,6 +1172,9 @@ void DivPlatformTX81Z::reset() {
   lfoValue2=0;
   lfoShape=0;
   lfoShape2=0;
+
+  immWrite(0x15,0x01); // enter OPZ mode
+  immWrite(0x0a,0x04); // enable mono bit
 
   immWrite(0x18,0x00); // LFO Freq Off
   immWrite(0x16,0x00);
